@@ -127,14 +127,6 @@ export default function LoginPage() {
                 </Button>
               </form>
             </Form>
-
-            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-               <p className="text-sm text-slate-500">Demo Accounts</p>
-               <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-                 <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-medium">Super Admin: super@test.com / 123456</span>
-                 <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-medium">Admin: admin@test.com / 123456</span>
-               </div>
-            </div>
           </div>
         </div>
       </div>
