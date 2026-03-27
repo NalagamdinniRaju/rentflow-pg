@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, UserPlus, Building2 } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useAdminBuildingsBasic } from '~/queries/buildings.query';
+import { useFloors, useRooms, useAvailableSeats } from '~/queries/layout.query';
+import { useAddResident } from '~/queries/residents.query';
 import { useAuthStore } from '~/store/auth.store';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -54,11 +56,6 @@ type ResidentFormValues = z.infer<typeof residentSchema>;
 export default function AddResidentPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  
-  const [buildings, setBuildings] = useState<any[]>([]);
-  const [floors, setFloors] = useState<any[]>([]);
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [seats, setSeats] = useState<any[]>([]);
 
   const form = useForm<ResidentFormValues>({
     resolver: zodResolver(residentSchema),
@@ -82,10 +79,24 @@ export default function AddResidentPage() {
   const roomId = useWatch({ control: form.control, name: 'room_id' });
   const stayType = useWatch({ control: form.control, name: 'stay_type' });
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from('buildings').select('id, name, monthly_rent, daily_rent, deposit_amount').eq('admin_id', user.id).then(({ data }) => setBuildings(data || []));
-  }, [user]);
+  const { data: buildings = [] } = useAdminBuildingsBasic({ 
+    variables: { adminId: user?.id || '' }, 
+    enabled: !!user?.id 
+  });
+  const { data: floors = [] } = useFloors({ 
+    variables: { buildingId: buildingId || '' }, 
+    enabled: !!buildingId 
+  });
+  const { data: rooms = [] } = useRooms({ 
+    variables: { floorId: floorId || '' }, 
+    enabled: !!floorId 
+  });
+  const { data: seats = [] } = useAvailableSeats({ 
+    variables: { roomId: roomId || '' }, 
+    enabled: !!roomId 
+  });
+
+  const addResidentMutation = useAddResident();
 
   useEffect(() => {
     if (buildingId) {
@@ -95,52 +106,12 @@ export default function AddResidentPage() {
          form.setValue('daily_rent', Number(b.daily_rent) || 300);
          form.setValue('deposit_amount', Number(b.deposit_amount) || 5000);
        }
-       supabase.from('floors').select('id, floor_number').eq('building_id', buildingId).then(({ data }) => {
-         setFloors(data || []);
-       });
     }
-  }, [buildingId, buildings]);
-
-  useEffect(() => {
-    if (floorId) {
-       supabase.from('rooms').select('id, room_number').eq('floor_id', floorId).then(({ data }) => {
-         setRooms(data || []);
-       });
-    }
-  }, [floorId]);
-
-  useEffect(() => {
-    if (roomId) {
-       supabase.from('seats').select('id, seat_number').eq('room_id', roomId).eq('status', 'AVAILABLE').then(({ data }) => {
-         setSeats(data || []);
-       });
-    }
-  }, [roomId]);
+  }, [buildingId, buildings, form]);
 
   const onSubmit = async (values: ResidentFormValues) => {
     try {
-      // Create resident
-      const { error: resErr } = await supabase.from('residents').insert({
-        name: values.name,
-        phone: values.phone,
-        email: values.email || null,
-        building_id: values.building_id,
-        floor_id: values.floor_id,
-        room_id: values.room_id,
-        seat_id: values.seat_id,
-        stay_type: values.stay_type,
-        monthly_rent: values.stay_type === 'MONTHLY' ? values.monthly_rent : null,
-        daily_rent: values.stay_type === 'DAILY' ? values.daily_rent : null,
-        deposit_amount: values.deposit_amount ? values.deposit_amount : null,
-        status: 'ACTIVE',
-        join_date: new Date().toISOString()
-      }).select('id').single();
-
-      if (resErr) throw resErr;
-
-      // Mark seat as occupied
-      await supabase.from('seats').update({ status: 'OCCUPIED' }).eq('id', values.seat_id);
-
+      await addResidentMutation.mutateAsync(values as any);
       toast.success("Resident added successfully!");
       navigate('/admin/residents');
     } catch (err: any) {

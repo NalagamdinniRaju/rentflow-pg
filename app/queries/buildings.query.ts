@@ -132,19 +132,20 @@ interface AddBuildingVariables {
   name: string;
   line_one: string;
   city_id: string;
-  admin_id: string;
+  pincode?: string;
+  admin_id: string | null;
   floors: number;
-  rooms_per_floor: number;
+  seats_per_floor: number;
 }
 
-/** Create a new building with auto-generated layout (floors, rooms, seats) */
+/** Create a new building with auto-generated layout (floors, single room per floor, seats) */
 export const useAddBuilding = createMutation<void, AddBuildingVariables>({
   mutationFn: async (variables) => {
     // 1. Create address
     const addrResp = await supabase.from('addresses').insert({
       line_one: variables.line_one,
       city_id: variables.city_id,
-      pincode: '000000',
+      pincode: variables.pincode || '000000',
     }).select('id').single();
     const addr = unwrapSupabaseResponse(addrResp);
 
@@ -161,24 +162,22 @@ export const useAddBuilding = createMutation<void, AddBuildingVariables>({
     for (let i = 1; i <= variables.floors; i++) {
       const floorResp = await supabase.from('floors').insert({
         building_id: bldg.id,
-        floor_number: `Floor ${i}`,
+        floor_number: i === 0 ? 'Ground Floor' : `Floor ${i}`,
       }).select('id').single();
       const floor = unwrapSupabaseResponse(floorResp);
 
-      for (let j = 1; j <= variables.rooms_per_floor; j++) {
-        const roomResp = await supabase.from('rooms').insert({
-          floor_id: floor.id,
-          room_number: `${i}0${j}`,
-          total_seats: 4,
-        }).select('id').single();
-        const room = unwrapSupabaseResponse(roomResp);
+      const roomResp = await supabase.from('rooms').insert({
+        floor_id: floor.id,
+        room_number: `${i}01`,
+        total_seats: variables.seats_per_floor,
+      }).select('id').single();
+      const room = unwrapSupabaseResponse(roomResp);
 
-        const seats = [1, 2, 3, 4].map((s) => ({
-          room_id: room.id,
-          seat_number: `B${s}`,
-        }));
-        await supabase.from('seats').insert(seats);
-      }
+      const seats = Array.from({ length: variables.seats_per_floor }).map((_, sIdx) => ({
+        room_id: room.id,
+        seat_number: `B${sIdx + 1}`,
+      }));
+      await supabase.from('seats').insert(seats);
     }
   },
   onSuccess: () => {

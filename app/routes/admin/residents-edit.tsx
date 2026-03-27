@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, UserCircle, Save, Trash2, OctagonAlert } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useResidentById, useUpdateResident } from '~/queries/residents.query';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
@@ -33,8 +33,13 @@ const residentSchema = z.object({
 export default function EditResidentPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [resident, setResident] = useState(null);
+
+  const { data: resident, isLoading: loading } = useResidentById({
+    variables: { residentId: id || '' },
+    enabled: !!id,
+  });
+
+  const updateResidentMutation = useUpdateResident();
 
   const form = useForm({
     resolver: zodResolver(residentSchema),
@@ -47,57 +52,41 @@ export default function EditResidentPage() {
   const stayType = useWatch({ control: form.control, name: 'stay_type' });
 
   useEffect(() => {
-    if (id) loadResident();
-  }, [id]);
-
-  async function loadResident() {
-    try {
-      const { data, error } = await supabase
-        .from('residents')
-        .select('*, building:buildings(name), room:rooms(room_number), seat:seats(seat_number)')
-        .eq('id', id)
-        .single();
-      
-      if (error) throw error;
-      setResident(data);
+    if (resident) {
       form.reset({
-        name: data.name,
-        phone: data.phone,
-        email: data.email || '',
-        status: data.status,
-        stay_type: data.stay_type,
-        monthly_rent: data.monthly_rent || 0,
-        daily_rent: data.daily_rent || 0,
-        deposit_amount: data.deposit_amount || 0,
+        name: resident.name,
+        phone: resident.phone,
+        email: resident.email || '',
+        status: resident.status,
+        stay_type: resident.stay_type,
+        monthly_rent: resident.monthly_rent || 0,
+        daily_rent: resident.daily_rent || 0,
+        deposit_amount: resident.deposit_amount || 0,
       });
-    } catch (e) {
-      toast.error("Failed to load resident");
-      navigate('/admin/residents');
-    } finally {
-      setLoading(false);
     }
-  }
+  }, [resident, form]);
 
   const onSubmit = async (values: any) => {
     try {
-      // If status is changed to VACATED, we should ideally free the seat, 
-      // but let's just update the record first as per user request.
-      const { error } = await supabase.from('residents').update({
-        ...values,
-        updated_at: new Date().toISOString()
-      }).eq('id', id);
-
-      if (error) throw error;
-
-      // Handle seat status if vacated
-      if (values.status === 'VACATED' && resident.seat_id) {
-         await supabase.from('seats').update({ status: 'AVAILABLE' }).eq('id', resident.seat_id);
-      }
+      await updateResidentMutation.mutateAsync({
+        residentId: id as string,
+        data: {
+          name: values.name,
+          phone: values.phone,
+          email: values.email as string,
+          status: values.status,
+          stay_type: values.stay_type,
+          monthly_rent: values.monthly_rent,
+          daily_rent: values.daily_rent,
+          deposit_amount: values.deposit_amount,
+        },
+        seatId: resident?.seat_id || undefined,
+      });
 
       toast.success("Resident updated successfully!");
       navigate('/admin/residents');
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || "Failed to update resident");
     }
   };
 
@@ -157,7 +146,7 @@ export default function EditResidentPage() {
                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">Allocation & Rent</h3>
                <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-2">
                   <OctagonAlert className="w-4 h-4"/> 
-                  Allocation: {resident.building?.name} • Room {resident.room?.room_number} • Bed {resident.seat?.seat_number}
+                  Allocation: {resident?.building?.name} • Room {resident?.room?.room_number} • Bed {resident?.seat?.seat_number}
                </div>
                <div className="grid sm:grid-cols-2 gap-6">
                   <FormField control={form.control} name="stay_type" render={({field}) => (

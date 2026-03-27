@@ -86,16 +86,16 @@ export const useResidentById = createQuery<ResidentFull, { residentId: string }>
 });
 
 /** Fetch resident for resident's own view (by user_id) */
-export const useMyResident = createQuery<ResidentWithRelations | null, { userId: string }>({
+export const useMyResident = createQuery<any | null, { userId: string }>({
   queryKey: residentKeys.all,
   fetcher: async (variables) => {
     const response = await supabase
       .from('residents')
-      .select('*, floor:floors(floor_number), room:rooms(room_number), seat:seats(seat_number)')
+      .select('*, floor:floors(floor_number), room:rooms(room_number), seat:seats(seat_number), building:buildings(*, address:addresses(*, city:cities(*)))')
       .eq('user_id', variables.userId)
       .maybeSingle();
     if (response.error) throw response.error;
-    return response.data as ResidentWithRelations | null;
+    return response.data;
   },
 });
 

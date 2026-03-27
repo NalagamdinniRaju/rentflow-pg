@@ -1,7 +1,8 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Building2, Plus, MapPin, UserSquare2, ChevronRight, Hash, Layers, Pencil } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useAllBuildings, useCities, useAddBuilding, useUpdateBuilding } from '~/queries/buildings.query';
+import { useAdmins } from '~/queries/admins.query';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -36,13 +37,18 @@ const buildingSchema = z.object({
 type BuildingFormValues = z.infer<typeof buildingSchema>;
 
 export default function BuildingsPage() {
-  const [buildings, setBuildings] = useState<any[]>([]);
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<any>(null);
+
+  const { data: buildings = [], isLoading: loadingBuildings } = useAllBuildings();
+  const { data: admins = [] } = useAdmins();
+  const { data: cities = [] } = useCities();
+  
+  const loading = loadingBuildings;
+
+  const addBuildingProps = useAddBuilding();
+  const updateBuildingProps = useUpdateBuilding();
 
   const form = useForm<BuildingFormValues>({
     resolver: zodResolver(buildingSchema),
@@ -65,77 +71,21 @@ export default function BuildingsPage() {
     }
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const [bRes, aRes, cRes] = await Promise.all([
-        supabase.from('buildings').select('*, address:addresses(*, city:cities(name, state:states(name))), admin:user_roles(name)').order('created_at', { ascending: false }),
-        supabase.from('user_roles').select('*').eq('role', 'ADMIN'),
-        supabase.from('cities').select('*, state:states(name)').order('name')
-      ]);
-      if (bRes.data) setBuildings(bRes.data);
-      if (aRes.data) setAdmins(aRes.data);
-      if (cRes.data) setCities(cRes.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const onSubmit = async (values: BuildingFormValues) => {
     try {
-      // 1. Create Address
-      const { data: addr, error: addrErr } = await supabase.from('addresses').insert({
-        line_one: values.line_one,
-        pincode: values.pincode,
-        city_id: values.city_id
-      }).select('id').single();
-      
-      if (addrErr) throw addrErr;
-
-      // 2. Create Building
-      const { data: bld, error: bldErr } = await supabase.from('buildings').insert({
+      await addBuildingProps.mutateAsync({
         name: values.name,
         admin_id: values.admin_id === 'none' ? null : values.admin_id,
-        address_id: addr.id,
-        status: 'ACTIVE'
-      }).select('id').single();
-
-      if (bldErr) throw bldErr;
-
-      // 3. Create Floors & Rooms auto-generation
-      for (let i = 1; i <= values.floors; i++) {
-        const { data: floorData } = await supabase.from('floors').insert({
-          building_id: bld.id,
-          floor_number: i === 0 ? 'Ground Floor' : `Floor ${i}`
-        }).select('id').single();
-
-        if (floorData) {
-          const { data: roomData } = await supabase.from('rooms').insert({
-            floor_id: floorData.id,
-            room_number: `${i}01`,
-            total_seats: values.seats_per_floor
-          }).select('id').single();
-
-          if (roomData) {
-            const seatsToInsert = Array.from({ length: values.seats_per_floor }).map((_, idx) => ({
-              room_id: roomData.id,
-              seat_number: `B${idx + 1}`
-            }));
-            await supabase.from('seats').insert(seatsToInsert);
-          }
-        }
-      }
+        city_id: values.city_id,
+        line_one: values.line_one,
+        pincode: values.pincode,
+        floors: values.floors,
+        seats_per_floor: values.seats_per_floor,
+      });
 
       toast.success("Building created and layout generated!");
       setOpen(false);
       form.reset();
-      loadData();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Failed to create building');
@@ -154,16 +104,15 @@ export default function BuildingsPage() {
 
   const onEditSubmit = async (values: any) => {
     try {
-      const { error } = await supabase.from('buildings').update({
+      await updateBuildingProps.mutateAsync({
+        buildingId: selectedBuilding.id,
         name: values.name,
         admin_id: values.admin_id === 'none' ? null : values.admin_id,
         status: values.status
-      }).eq('id', selectedBuilding.id);
+      });
 
-      if (error) throw error;
       toast.success('Building updated successfully');
       setEditOpen(false);
-      loadData();
     } catch (err: any) {
       toast.error(err.message || 'Failed to update building');
     }

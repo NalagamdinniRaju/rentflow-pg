@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapPin, Plus } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useStates, useLocationCities, useCreateState, useCreateCity } from '~/queries/locations.query';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
@@ -36,12 +36,15 @@ type StateFormValues = z.infer<typeof stateSchema>;
 type CityFormValues = z.infer<typeof citySchema>;
 
 export default function LocationsPage() {
-  const [states, setStates] = useState<State[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [stateDialogOpen, setStateDialogOpen] = useState(false);
   const [cityDialogOpen, setCityDialogOpen] = useState(false);
+
+  const { data: states = [], isLoading: loadingStates } = useStates();
+  const { data: cities = [], isLoading: loadingCities } = useLocationCities();
+  const loading = loadingStates || loadingCities;
+
+  const createStateProps = useCreateState();
+  const createCityProps = useCreateCity();
 
   const stateForm = useForm<StateFormValues>({
     resolver: zodResolver(stateSchema),
@@ -53,34 +56,12 @@ export default function LocationsPage() {
     defaultValues: { name: '', state_id: '' }
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const [statesRes, citiesRes] = await Promise.all([
-        supabase.from('states').select('*').order('name'),
-        supabase.from('cities').select('*, state:states(*)').order('name')
-      ]);
-      if (statesRes.data) setStates(statesRes.data);
-      if (citiesRes.data) setCities(citiesRes.data);
-    } catch (err: unknown) {
-      if(err instanceof Error) console.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const onStateSubmit = async (values: StateFormValues) => {
     try {
-      const { error: dbErr } = await supabase.from('states').insert({ name: values.name });
-      if (dbErr) throw dbErr;
+      await createStateProps.mutateAsync({ name: values.name });
       toast.success("State added successfully");
       setStateDialogOpen(false);
       stateForm.reset();
-      loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to add state';
       toast.error(msg);
@@ -89,14 +70,12 @@ export default function LocationsPage() {
 
   const onCitySubmit = async (values: CityFormValues) => {
     try {
-      const { error: dbErr } = await supabase.from('cities').insert({ 
+      await createCityProps.mutateAsync({ 
         name: values.name, state_id: values.state_id 
       });
-      if (dbErr) throw dbErr;
       toast.success("City added successfully");
       setCityDialogOpen(false);
       cityForm.reset();
-      loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to add city';
       toast.error(msg);
