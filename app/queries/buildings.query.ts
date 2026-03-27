@@ -41,6 +41,7 @@ export interface BuildingBasic {
 export interface CityBasic {
   id: string;
   name: string;
+  state?: { name: string } | null;
 }
 
 // ─── Query Keys ───────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ export const buildingKeys = {
   byAdmin: (adminId: string) => [...buildingKeys.all, 'admin', adminId] as const,
   byId: (id: string) => [...buildingKeys.all, id] as const,
   ids: (adminId: string) => [...buildingKeys.all, 'ids', adminId] as const,
-  cities: ['cities'] as const,
+  cities: ['buildings', 'cities'] as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────
@@ -117,12 +118,15 @@ export const useBuildingById = createQuery<BuildingWithAddress, { buildingId: st
   },
 });
 
-/** Fetch all cities (used in dropdowns) */
+/** Fetch all cities with state info (used in dropdowns) */
 export const useCities = createQuery<CityBasic[]>({
   queryKey: buildingKeys.cities,
   fetcher: async () => {
-    const response = await supabase.from('cities').select('id, name');
-    return unwrapSupabaseResponse(response) as CityBasic[];
+    const response = await supabase
+      .from('cities')
+      .select('id, name, state:states(name)')
+      .order('name');
+    return unwrapSupabaseResponse(response) as unknown as CityBasic[];
   },
 });
 

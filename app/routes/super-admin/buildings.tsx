@@ -6,6 +6,7 @@ import { useAdmins } from '~/queries/admins.query';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { CityCombobox } from '~/components/ui/city-combobox';
 import { Card, CardContent } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog';
@@ -216,14 +217,14 @@ export default function BuildingsPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>City *</FormLabel>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Select City" /></SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {cities.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.state?.name})</SelectItem>)}
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <CityCombobox
+                                cities={cities}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Search and select city…"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
