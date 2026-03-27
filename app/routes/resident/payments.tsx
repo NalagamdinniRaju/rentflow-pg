@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { 
-  ChevronLeft, IndianRupee, Calendar, 
+  ChevronLeft, Calendar, 
   ArrowUpRight, Clock, CheckCircle2, AlertCircle 
 } from 'lucide-react';
 import { supabase } from '~/lib/supabase';
