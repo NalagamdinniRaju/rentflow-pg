@@ -52,6 +52,7 @@ export const buildingKeys = {
   byId: (id: string) => [...buildingKeys.all, id] as const,
   ids: (adminId: string) => [...buildingKeys.all, 'ids', adminId] as const,
   cities: ['buildings', 'cities'] as const,
+  layout: (buildingId: string) => ['buildings', 'layout', buildingId] as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────
@@ -234,14 +235,15 @@ export const useUpdateBuilding = createMutation<void, UpdateBuildingVariables>({
 });
 
 export const useBuildingLayout = createQuery<any[], { buildingId: string }>({
-  queryKey: buildingKeys.all,
+  queryKey: buildingKeys.layout(''),
   fetcher: async (variables) => {
     const response = await supabase
       .from('floors')
       .select('*, rooms(*, seats(*))')
       .eq('building_id', variables.buildingId)
       .order('floor_number', { ascending: true });
-    return unwrapSupabaseResponse(response) as any[];
+    const data = unwrapSupabaseResponse(response);
+    return Array.isArray(data) ? data : [];
   },
 });
 
