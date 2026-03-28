@@ -31,8 +31,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   setLoading: (loading) => set({ loading }),
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    // Clear user state immediately so the UI responds instantly
     set({ user: null });
+    // Tell Supabase to invalidate session
+    await supabase.auth.signOut();
   },
 
   signIn: async (email, password) => {

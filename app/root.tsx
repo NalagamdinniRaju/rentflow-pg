@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '~/queries/client';
 import { useAuthStore } from '~/store/auth.store';
+import { supabase } from '~/lib/supabase';
 import {
   isRouteErrorResponse,
   Links,
@@ -9,6 +10,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate
 } from "react-router";
 import type { Route } from "./+types/root";
 import { Toaster } from "sonner";
@@ -46,10 +48,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { initialize, initialized } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // If signed out, redirect to login
+      if (event === 'SIGNED_OUT') {
+        // Clear query cache on logout to prevent data leak between users
+        queryClient.clear();
+        
+        // Don't redirect if already on login/register/root
+        const publicPaths = ['/login', '/register', '/'];
+        if (!publicPaths.includes(window.location.pathname)) {
+          navigate('/login', { replace: true });
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   if (!initialized) {
     return (
