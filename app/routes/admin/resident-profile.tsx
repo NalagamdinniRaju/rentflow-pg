@@ -109,7 +109,8 @@ export default function ResidentProfilePage() {
                 )}
               </div>
               <h2 className="text-xl font-bold text-slate-900">{resident.name}</h2>
-              <p className="text-slate-500 mb-4">{resident.phone}</p>
+              <p className="text-sm font-medium text-slate-500 mb-1">{resident.age || '-'} Yrs • {resident.gender || '-'}</p>
+              <p className="text-slate-400 text-sm mb-4 italic">{resident.phone}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 <Button variant="outline" size="sm" className="h-8">
                   <Phone className="w-3.5 h-3.5 mr-2" /> Call

@@ -144,6 +144,10 @@ export default function ResidentProfilePage() {
                   <span className="text-sm font-medium text-slate-900">+91 {resident?.phone}</span>
                 </div>
                 <div className="flex flex-col gap-1 px-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest">Age / Gender</span>
+                  <span className="text-sm font-medium text-slate-900">{resident?.age || '-'} Yrs • {resident?.gender || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1 px-1">
                   <span className="text-[10px] text-slate-400 uppercase tracking-widest">Joined On</span>
                   <span className="text-sm font-medium text-slate-900">{formatDate(resident?.join_date)}</span>
                 </div>

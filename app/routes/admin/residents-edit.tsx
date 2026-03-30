@@ -28,6 +28,8 @@ const residentSchema = z.object({
   monthly_rent: z.coerce.number().optional(),
   daily_rent: z.coerce.number().optional(),
   deposit_amount: z.coerce.number().optional(),
+  age: z.coerce.number().min(1, "Valid age required").optional().or(z.literal('')),
+  gender: z.enum(['Male', 'Female', 'Other']).optional().or(z.literal('')),
 });
 
 export default function EditResidentPage() {
@@ -45,7 +47,8 @@ export default function EditResidentPage() {
     resolver: zodResolver(residentSchema),
     defaultValues: {
       name: '', phone: '', email: '', status: 'ACTIVE',
-      stay_type: 'MONTHLY', monthly_rent: 0, daily_rent: 0, deposit_amount: 0
+      stay_type: 'MONTHLY', monthly_rent: 0, daily_rent: 0, deposit_amount: 0,
+      age: '', gender: ''
     }
   });
 
@@ -62,6 +65,8 @@ export default function EditResidentPage() {
         monthly_rent: resident.monthly_rent || 0,
         daily_rent: resident.daily_rent || 0,
         deposit_amount: resident.deposit_amount || 0,
+        age: resident.age || '',
+        gender: resident.gender || '',
       });
     }
   }, [resident, form]);
@@ -79,6 +84,8 @@ export default function EditResidentPage() {
           monthly_rent: values.monthly_rent,
           daily_rent: values.daily_rent,
           deposit_amount: values.deposit_amount,
+          age: values.age ? parseInt(values.age) : null,
+          gender: values.gender || null,
         },
         seatId: resident?.seat_id || undefined,
       });
@@ -138,6 +145,23 @@ export default function EditResidentPage() {
                       </Select>
                       <FormMessage/>
                     </FormItem>
+                  )}/>
+                  <FormField control={form.control} name="gender" render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Gender</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select Gender"/></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage/>
+                    </FormItem>
+                  )}/>
+                  <FormField control={form.control} name="age" render={({field}) => (
+                    <FormItem><FormLabel>Age (Years)</FormLabel><FormControl><Input type="number" {...field}/></FormControl><FormMessage/></FormItem>
                   )}/>
                </div>
             </div>

@@ -85,6 +85,8 @@ export type Database = {
           created_at: string;
           address_id: string | null;
           outstanding_balance: number;
+          age: number | null;
+          gender: 'Male' | 'Female' | 'Other' | null;
         };
       };
       payments: {

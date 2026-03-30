@@ -86,7 +86,10 @@ export const useRegistrationSeats = createQuery<{id: string; seat_number: string
 
 export const useRegisterUser = createMutation<void, any>({
   mutationFn: async (variables) => {
-    const { email, password, name, phone, line_one, line_two, pincode, city_id, building_id, floor_id, room_id, seat_id } = variables;
+    const { 
+      email, password, name, phone, line_one, line_two, pincode, city_id, 
+      building_id, floor_id, room_id, seat_id, age, gender 
+    } = variables;
 
     // 1. Auth creation
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -126,6 +129,8 @@ export const useRegisterUser = createMutation<void, any>({
       name,
       phone,
       email,
+      age: age ? parseInt(age) : null,
+      gender: gender || null,
       status: 'PENDING',
       address_id: addrData.id,
     });

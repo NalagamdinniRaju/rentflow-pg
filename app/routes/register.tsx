@@ -33,6 +33,7 @@ export default function RegisterPage() {
     building_id: '', floor_id: '', room_type_id: '', sharing_type_id: '', room_id: '', seat_id: '',
     line_one: '', line_two: '', state_id: '', city_id: '', pincode: '',
     password: '', confirm_password: '',
+    age: '', gender: ''
   });
 
   const { data: states = [] } = useRegistrationStates();
@@ -142,6 +143,23 @@ export default function RegisterPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <Label>Gender *</Label>
+                    <Select value={form.gender} onValueChange={v => update('gender', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Age *</Label>
+                    <Input id="age" type="number" placeholder="24" value={form.age} onChange={e => update('age', e.target.value)} required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label>Select Building *</Label>
                     <Select value={form.building_id} onValueChange={v => { update('building_id', v); update('floor_id', ''); update('room_id', ''); update('seat_id', ''); }}>
                       <SelectTrigger><SelectValue placeholder="— Select PG —" /></SelectTrigger>
@@ -215,7 +233,7 @@ export default function RegisterPage() {
                     </Select>
                   </div>
                 </div>
-                <Button type="button" className="w-full" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id} onClick={() => setStep(2)}>
+                <Button type="button" className="w-full" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id || !form.age || !form.gender} onClick={() => setStep(2)}>
                   Next Step (Address) →
                 </Button>
               </div>
