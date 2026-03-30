@@ -8,8 +8,9 @@ import {
   useMyPayments, 
   useSubmitPayment 
 } from '~/queries/payments.query';
-import { formatCurrency, formatDate } from '~/lib/utils';
+import { formatCurrency, formatDate, cn } from '~/lib/utils';
 import { toast } from 'sonner';
+import { useAuthStore } from '~/store/auth.store';
 import { supabase } from '~/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '~/components/ui/dialog';
 import { Input } from '~/components/ui/input';
@@ -21,6 +22,10 @@ import { useQuery } from '@tanstack/react-query';
 export default function ResidentPaymentsPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { data: payments = [], isLoading: loading } = useMyPayments({ 
+    variables: { userId: user?.id || '' },
+    enabled: !!user?.id 
+  });
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [txnRef, setTxnRef] = useState('');
   const [uploading, setUploading] = useState(false);
