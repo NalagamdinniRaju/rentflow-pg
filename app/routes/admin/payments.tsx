@@ -39,8 +39,11 @@ const paymentSchema = z.object({
 
 type PaymentFormValues = z.infer<typeof paymentSchema>;
 
+import { useManagementContext } from '~/hooks/use-management-context';
+
 export default function PaymentsPage() {
   const { user } = useAuthStore();
+  const { buildingIds } = useManagementContext();
   
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,11 +58,6 @@ export default function PaymentsPage() {
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: { payment_mode: 'UPI', remarks: '' }
-  });
-
-  const { data: buildingIds = [] } = useAdminBuildingIds({
-    variables: { adminId: user?.id || '' },
-    enabled: !!user?.id,
   });
 
   const { data: payments = [], isLoading: loading } = useMonthlyPayments({

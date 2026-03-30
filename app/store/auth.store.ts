@@ -44,13 +44,26 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
-      .select('role')
+      .select('role, name, phone')
       .eq('user_id', authData.user.id)
       .maybeSingle();
 
     if (roleError || !roleData) {
        throw new Error("User role not configured");
     }
+
+    // Set user state immediately to avoid redirection race conditions in React Router layouts
+    set({
+      user: {
+        id: authData.user.id,
+        email: authData.user.email ?? '',
+        role: roleData.role as UserRole,
+        name: roleData.name,
+        phone: roleData.phone,
+      },
+      initialized: true,
+      loading: false
+    });
 
     return roleData.role as UserRole;
   },

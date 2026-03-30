@@ -12,11 +12,12 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-import { useAdminBuildingIds } from '~/queries/buildings.query';
+import { useManagementContext } from '~/hooks/use-management-context';
 import { useAdminResidents, useUpdateResidentStatus } from '~/queries/residents.query';
 
 export default function ResidentsPage() {
   const { user } = useAuthStore();
+  const { buildingIds, isImpersonating } = useManagementContext();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
 
@@ -25,17 +26,12 @@ export default function ResidentsPage() {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   // Queries
-  const { data: buildingIds = [], isLoading: loadingBuildings } = useAdminBuildingIds({
-    variables: { adminId: user?.id || '' },
-    enabled: !!user?.id,
-  });
-
   const { data: residents = [], isLoading: loadingResidents } = useAdminResidents({
     variables: { buildingIds },
     enabled: buildingIds.length > 0,
   });
 
-  const loading = loadingBuildings || (buildingIds.length > 0 && loadingResidents);
+  const loading = buildingIds.length > 0 && loadingResidents;
 
   // Mutations
   const { mutateAsync: updateStatus } = useUpdateResidentStatus();

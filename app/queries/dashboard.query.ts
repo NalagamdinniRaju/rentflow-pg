@@ -45,11 +45,15 @@ export const dashboardKeys = {
 // ─── Queries ──────────────────────────────────────────────────────────────
 
 /** Fetch all dashboard data for admin in a single query */
-export const useAdminDashboard = createQuery<AdminDashboardData, { adminId: string }>({
+export const useAdminDashboard = createQuery<AdminDashboardData, { adminId?: string; buildingIds?: string[] }>({
   queryKey: ['dashboard'],
   fetcher: async (variables) => {
-    const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', variables.adminId);
-    const bIds = bldgs?.map((b) => b.id) || [];
+    let bIds: string[] = variables.buildingIds || [];
+    
+    if (bIds.length === 0 && variables.adminId) {
+      const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', variables.adminId);
+      bIds = bldgs?.map((b) => b.id) || [];
+    }
 
     if (bIds.length === 0) {
       return {
@@ -65,7 +69,7 @@ export const useAdminDashboard = createQuery<AdminDashboardData, { adminId: stri
     const curYear = now.getFullYear();
 
     const { data: allResData } = await supabase.from('residents').select('id, join_date, vacate_date, status').in('building_id', bIds);
-    const rIds = allResData?.map((r) => r.id) || [];
+    const rIds = (allResData || []).map((r) => r.id);
 
     const [
       { count: activeCount },
@@ -178,15 +182,20 @@ export interface MonthlyReportItem {
   profit: number;
 }
 
-export const useFinancialReports = createQuery<MonthlyReportItem[], { adminId: string; year: number }>({
+export const useFinancialReports = createQuery<MonthlyReportItem[], { adminId?: string; buildingIds?: string[]; year: number }>({
   queryKey: ['reports'],
   fetcher: async (variables) => {
-    const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', variables.adminId);
-    const bIds = bldgs?.map((b) => b.id) || [];
+    let bIds: string[] = variables.buildingIds || [];
+    
+    if (bIds.length === 0 && variables.adminId) {
+      const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', variables.adminId);
+      bIds = bldgs?.map((b) => b.id) || [];
+    }
+
     if (bIds.length === 0) return [];
 
     const resBase = await supabase.from('residents').select('id').in('building_id', bIds);
-    const resIds = resBase.data?.map((r) => r.id) || [];
+    const resIds = (resBase.data || []).map((r) => r.id);
 
     const [{ data: paymentsData }, { data: expensesData }] = await Promise.all([
       supabase.from('payments').select('month, amount').in('resident_id', resIds).gte('month', `${variables.year}-01`).lte('month', `${variables.year}-12`).eq('status', 'PAID'),

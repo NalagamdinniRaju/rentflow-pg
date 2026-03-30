@@ -6,17 +6,19 @@ import { formatCurrency } from '~/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 
 import { useFinancialReports } from '~/queries/dashboard.query';
+import { useManagementContext } from '~/hooks/use-management-context';
 
 export default function ReportsPage() {
   const { user } = useAuthStore();
+  const { buildingIds } = useManagementContext();
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
   
   const { data: reportData = [], isLoading: loading } = useFinancialReports({
     variables: { 
-      adminId: user?.id || '', 
+      buildingIds, 
       year: parseInt(filterYear) 
     },
-    enabled: !!user?.id
+    enabled: buildingIds.length > 0
   });
 
   const yearlyIncome = reportData.reduce((a,c) => a + c.income, 0);

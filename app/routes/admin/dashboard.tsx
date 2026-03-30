@@ -12,12 +12,15 @@ import {
 
 import { useAdminDashboard } from '~/queries/dashboard.query';
 
+import { useManagementContext } from '~/hooks/use-management-context';
+
 export default function AdminDashboard() {
   const { user } = useAuthStore();
+  const { buildingIds } = useManagementContext();
   
   const { data, isLoading: loading } = useAdminDashboard({
-    variables: { adminId: user?.id || '' },
-    enabled: !!user?.id,
+    variables: { buildingIds },
+    enabled: buildingIds.length > 0,
   });
 
   const stats = data?.stats || {

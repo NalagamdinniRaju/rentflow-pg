@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState } from 'react';
-import { Building2, Plus, MapPin, UserSquare2, ChevronRight, Hash, Layers, Pencil } from 'lucide-react';
+import { Building2, Plus, MapPin, UserSquare2, ChevronRight, Hash, Layers, Pencil, LayoutDashboard } from 'lucide-react';
 import { useAllBuildings, useCities, useAddBuilding, useUpdateBuilding } from '~/queries/buildings.query';
 import { useAdmins } from '~/queries/admins.query';
 import { Button } from '~/components/ui/button';
@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSuperAdminStore } from '~/store/super-admin.store';
+import { useNavigate } from 'react-router';
 import {
     Form,
     FormControl,
@@ -38,6 +40,8 @@ const buildingSchema = z.object({
 type BuildingFormValues = z.infer<typeof buildingSchema>;
 
 export default function BuildingsPage() {
+  const navigate = useNavigate();
+  const { setSelectedBuildingId, setImpersonating } = useSuperAdminStore();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<any>(null);
@@ -47,6 +51,13 @@ export default function BuildingsPage() {
   const { data: cities = [] } = useCities();
   
   const loading = loadingBuildings;
+
+  const handleManageBuilding = (building: any) => {
+    setSelectedBuildingId(building.id);
+    setImpersonating(true);
+    toast.success(`Entering Management Mode for ${building.name}`);
+    navigate('/admin');
+  };
 
   const addBuildingProps = useAddBuilding();
   const updateBuildingProps = useUpdateBuilding();
@@ -366,6 +377,20 @@ export default function BuildingsPage() {
                   Admin
                 </div>
                 <span className="font-bold text-slate-900">{b.admin?.name || 'Unassigned'}</span>
+              </div>
+
+              <div className="mt-6 flex gap-2">
+                <Button 
+                  variant="outline" 
+                   className="flex-1 text-xs font-bold border-slate-200 hover:bg-slate-50"
+                   onClick={() => handleManageBuilding(b)}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5 mr-2 text-blue-600" />
+                  Manage Property
+                </Button>
+                <Button variant="ghost" size="icon" className="border border-slate-100">
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </Button>
               </div>
             </CardContent>
           </Card>
