@@ -33,7 +33,15 @@ export default function SuperAdminDashboard() {
     { label: 'Cities Covered', value: stats?.locations || 0, icon: MapPin, color: 'text-amber-600', bg: 'bg-amber-50' },
   ];
 
-  if (loading) return <div>Loading dashboard...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="text-center">
+         <p className="text-slate-600 font-bold tracking-tight">Accessing Platform Core...</p>
+         <p className="text-slate-400 text-[10px] uppercase tracking-widest animate-pulse mt-1 font-black">Authorized Personnel Only</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

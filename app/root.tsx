@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '~/queries/client';
+import { getQueryClient } from '~/queries/client';
 import { useAuthStore } from '~/store/auth.store';
 import { supabase } from '~/lib/supabase';
 import {
@@ -49,17 +49,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const { initialize, initialized } = useAuthStore();
   const navigate = useNavigate();
+  // Create a stable QueryClient instance for the lifecycle of the App
+  const [qc] = useState(() => getQueryClient());
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // If signed out, redirect to login
       if (event === 'SIGNED_OUT') {
-        // Clear query cache on logout to prevent data leak between users
-        queryClient.clear();
+        // Clear user state
+        useAuthStore.getState().setUser(null);
+        // Clear query cache on logout to prevent data leak
+        qc.clear();
         
         // Don't redirect if already on login/register/root
         const publicPaths = ['/login', '/register', '/'];
@@ -70,18 +74,21 @@ export default function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, qc]);
 
   if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400 text-sm animate-pulse font-medium">Initializing application...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={qc}>
       <Outlet />
     </QueryClientProvider>
   );
@@ -99,13 +106,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-slate-900 mb-4">{message}</h1>
-        <p className="text-slate-500 mb-8">{details}</p>
-        <a href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-          Go Home
-        </a>
+    <main className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="text-center max-w-lg w-full bg-white p-10 rounded-[32px] border border-slate-100 shadow-xl">
+        <h1 className="text-5xl font-black text-slate-900 mb-6">{message}</h1>
+        <p className="text-slate-500 mb-8 font-medium italic">"{details}"</p>
+        <button 
+          onClick={() => window.location.href = '/'}
+          className="bg-blue-600 text-white px-8 py-4 rounded-2xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/20"
+        >
+          Return to Safety
+        </button>
       </div>
     </main>
   );

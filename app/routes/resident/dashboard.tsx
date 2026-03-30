@@ -31,7 +31,7 @@ export default function ResidentDashboard() {
 
   const uploadDocMutation = useUploadResidentDocument();
 
-  const loading = loadingResident || loadingPayments;
+  const loading = (loadingResident || loadingPayments) && !!user?.id;
   
   const building = resident?.building;
 
@@ -60,9 +60,12 @@ export default function ResidentDashboard() {
 
   /* ── Loading ── */
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-      <div className="w-9 h-9 border-[3px] border-slate-900 border-t-transparent rounded-full animate-spin" />
-      <p className="text-slate-400 text-sm">Loading your dashboard…</p>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="flex flex-col items-center gap-1">
+        <p className="text-slate-600 font-bold">Synchronizing dashboard...</p>
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest animate-pulse font-bold">Fetching secure data</p>
+      </div>
     </div>
   );
 
