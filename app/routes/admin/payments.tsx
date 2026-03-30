@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
-import { formatCurrency, getStatusColor, MONTH_NAMES } from '~/lib/utils';
+import { formatCurrency, getStatusColor, MONTH_NAMES, formatMonthYear } from '~/lib/utils';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,12 +28,14 @@ import {
   useMonthlyPayments, 
   useMarkPaymentPaid, 
   useVerifyPayment, 
-  useRejectPayment 
+  useRejectPayment,
+  useUpdatePaymentStatus 
 } from '~/queries/payments.query';
 import { cn } from '~/lib/utils';
 
 const paymentSchema = z.object({
   payment_mode: z.enum(['UPI', 'Cash', 'Bank']),
+  amount_paid: z.coerce.number().min(0, "Amount must be positive"),
   remarks: z.string().optional()
 });
 
@@ -71,24 +73,28 @@ export default function PaymentsPage() {
 
   const filteredPayments = payments.filter(p => filterStatus === 'ALL' || p.status === filterStatus);
 
-  const { mutateAsync: markPaid } = useMarkPaymentPaid();
+  const { mutateAsync: updatePaymentStatus } = useUpdatePaymentStatus();
   const { mutateAsync: verifyPayment } = useVerifyPayment();
   const { mutateAsync: rejectPayment } = useRejectPayment();
-
   const onSubmit = async (values: PaymentFormValues) => {
     if (!selectedPayment) return;
+
+    // We use the new increment logic: the RPC adds the input to the existing total_paid.
     try {
-      await markPaid({
+      await updatePaymentStatus({
         paymentId: selectedPayment.id,
+        resident_id: selectedPayment.resident_id,
+        amount_due: selectedPayment.amount, // Total monthly target
+        amount_paid: values.amount_paid, // The amount being paid RIGHT NOW
         payment_mode: values.payment_mode,
         remarks: values.remarks || null,
-        resident_id: selectedPayment.resident_id,
-        month: parseInt(filterMonth),
-        year: parseInt(filterYear),
-        amount: selectedPayment.amount
+        month: formatMonthYear(parseInt(filterMonth), parseInt(filterYear)),
+        status: 'PAID' // RPC will calculate if it should be PAID or PARTIAL
       });
       
-      toast.success("Payment logged successfully");
+      const remaining = selectedPayment.status === 'PARTIALLY_PAID' ? Number(selectedPayment.balance) : Number(selectedPayment.amount);
+      const isFull = values.amount_paid >= remaining;
+      toast.success(isFull ? "Full payment recorded" : `Partial payment of ${formatCurrency(values.amount_paid)} recorded`);
       setDialogOpen(false);
       form.reset();
     } catch (err: any) {
@@ -98,7 +104,11 @@ export default function PaymentsPage() {
 
   const openPaymentDialog = (p: any) => {
     setSelectedPayment(p);
-    form.reset();
+    form.reset({
+      payment_mode: 'UPI',
+      amount_paid: p.status === 'PARTIALLY_PAID' ? Number(p.balance) : Number(p.amount), // Defaults to remaining balance
+      remarks: ''
+    });
     if (p.status === 'SUBMITTED') {
       setOpenVerify(true);
     } else {
@@ -139,9 +149,15 @@ export default function PaymentsPage() {
     }
   };
 
-  const totalDue = payments.filter(p => p.status === 'PENDING').reduce((a,c) => a+Number(c.amount), 0);
-  const totalCollected = payments.filter(p => p.status === 'PAID').reduce((a,c) => a+Number(c.amount), 0);
-  const pendingCount = payments.filter(p => p.status === 'PENDING' || p.status === 'REJECTED').length;
+  const totalDue = payments
+    .filter(p => p.status === 'PENDING' || p.status === 'REJECTED' || p.status === 'PARTIALLY_PAID')
+    .reduce((a,c) => a + (c.status === 'PARTIALLY_PAID' ? Number(c.balance) : Number(c.amount)), 0);
+    
+  const totalCollected = payments
+    .filter(p => p.status === 'PAID' || p.status === 'PARTIALLY_PAID')
+    .reduce((a,c) => a + Number(c.amount_paid || 0), 0);
+
+  const pendingCount = payments.filter(p => p.status === 'PENDING' || p.status === 'REJECTED' || p.status === 'PARTIALLY_PAID').length;
   const submittedCount = payments.filter(p => p.status === 'SUBMITTED').length;
 
   return (
@@ -261,10 +277,15 @@ export default function PaymentsPage() {
                     <div className="flex items-center gap-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-0 border-slate-100">
                     <div className="text-left md:text-right">
                        <div className="text-xl font-extrabold text-slate-900">{formatCurrency(p.amount)}</div>
-                       <Badge className={cn(getStatusColor(p.status), "font-bold uppercase text-[10px]")}>{p.status}</Badge>
+                       <div className="flex flex-col items-end gap-1">
+                        <Badge className={cn(getStatusColor(p.status), "font-bold uppercase text-[10px]")}>{p.status}</Badge>
+                        {p.status === 'PARTIALLY_PAID' && (
+                          <span className="text-[10px] text-red-500 font-bold">Bal: {formatCurrency(p.balance)}</span>
+                        )}
+                       </div>
                     </div>
 
-                    {!isPaid && (
+                    {p.status !== 'PAID' && (
                       <Button onClick={() => openPaymentDialog(p)} className={cn("shadow-md h-10", isSubmitted ? "bg-blue-600 hover:bg-blue-700 font-bold" : "bg-emerald-600 hover:bg-emerald-700 font-bold")}>
                          {isSubmitted ? "Review Proof" : "Record Receipt"}
                       </Button>
@@ -284,12 +305,42 @@ export default function PaymentsPage() {
           {selectedPayment && (
              <Form {...form}>
                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center text-lg">
-                   <span className="text-slate-600 font-medium">Clear Outstanding:</span>
-                   <span className="font-extrabold text-slate-900">{formatCurrency(selectedPayment.amount)}</span>
+                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+                   <div className="flex justify-between items-center text-sm">
+                     <span className="text-slate-500">Monthly Total Due:</span>
+                     <span className="font-bold text-slate-700">{formatCurrency(selectedPayment.amount)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-lg">
+                     <span className="text-slate-600 font-medium">Pending Balance:</span>
+                     <span className="font-extrabold text-emerald-700">
+                       {formatCurrency(selectedPayment.status === 'PARTIALLY_PAID' ? selectedPayment.balance : selectedPayment.amount)}
+                     </span>
+                   </div>
                  </div>
                  
                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="amount_paid"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pay Amount Now *</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <IndianRupee className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                              <Input type="number" className="pl-9" placeholder="Enter amount being paid" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          {selectedPayment && (
+                             <p className="text-[11px] text-slate-500 italic mt-1">
+                               Paying {formatCurrency(field.value)} of 
+                               {formatCurrency(selectedPayment.status === 'PARTIALLY_PAID' ? selectedPayment.balance : selectedPayment.amount)}
+                             </p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
                    <FormField
                      control={form.control}
                      name="payment_mode"

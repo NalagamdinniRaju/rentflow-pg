@@ -43,7 +43,7 @@ export const useMonthlyPayments = createQuery<PaymentWithResident[], PaymentsQue
     // 1. Get ALL active monthly residents for these buildings
     const { data: activeRes } = await supabase
       .from('residents')
-      .select('id, name, phone, room_id, monthly_rent, room:rooms(room_number), building:buildings(name)')
+      .select('id, name, phone, room_id, monthly_rent, outstanding_balance, room:rooms(room_number), building:buildings(name)')
       .in('building_id', variables.buildingIds)
       .eq('status', 'ACTIVE')
       .eq('stay_type', 'MONTHLY');
@@ -73,7 +73,9 @@ export const useMonthlyPayments = createQuery<PaymentWithResident[], PaymentsQue
       return {
         id: `virtual-${res.id}`,
         resident_id: res.id,
-        amount: res.monthly_rent || 0, 
+        amount: Number(res.monthly_rent || 0) + Number(res.outstanding_balance || 0), 
+        amount_paid: 0,
+        balance: Number(res.monthly_rent || 0) + Number(res.outstanding_balance || 0),
         status: 'PENDING',
         month: monthLabel,
         resident: res,
@@ -223,19 +225,49 @@ export const useSubmitPayment = createMutation<void, SubmitPaymentVariables>({
   },
 });
 
-export const useMarkPaymentPaid = createMutation<void, { paymentId: string; payment_mode: any; remarks: any; resident_id?: string; month?: number; year?: number; amount?: number }>({
+export const useUpdatePaymentStatus = createMutation<void, { 
+  paymentId: string; 
+  resident_id: string; 
+  amount_due: number; 
+  amount_paid: number; 
+  payment_mode: string; 
+  remarks?: string; 
+  month: string; 
+  status: 'PAID' | 'PARTIALLY_PAID';
+}>({
+  mutationFn: async (variables) => {
+    const { error } = await supabase.rpc('handle_payment_update', {
+      p_payment_id: variables.paymentId,
+      p_resident_id: variables.resident_id,
+      p_amount_due: variables.amount_due,
+      p_payment_increment: variables.amount_paid,
+      p_payment_mode: variables.payment_mode,
+      p_remarks: variables.remarks || null,
+      p_month: variables.month,
+      p_status: variables.status
+    });
+    if (error) throw error;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['monthly-payments'] });
+  },
+});
+
+export const useMarkPaymentPaid = createMutation<void, { paymentId: string; payment_mode: any; remarks: any; resident_id?: string; month?: string; amount?: number }>({
   mutationFn: async (variables) => {
     const isVirtual = variables.paymentId.startsWith('virtual-');
     if (isVirtual) {
       await supabase.from('payments').insert({
-        resident_id: variables.resident_id,
-        month: formatMonthYear(variables.month!, variables.year!),
+        resident_id: variables.resident_id!,
+        month: variables.month!,
         status: 'PAID',
         paid_date: new Date().toISOString().split('T')[0],
         paid_at: new Date().toISOString(),
         payment_mode: variables.payment_mode,
         remarks: variables.remarks,
-        amount: variables.amount
+        amount: variables.amount!,
+        amount_paid: variables.amount!,
+        balance: 0
       });
     } else {
       await supabase.from('payments').update({
@@ -244,6 +276,8 @@ export const useMarkPaymentPaid = createMutation<void, { paymentId: string; paym
         paid_at: new Date().toISOString(),
         payment_mode: variables.payment_mode,
         remarks: variables.remarks,
+        amount_paid: variables.amount || 0,
+        balance: 0
       }).eq('id', variables.paymentId);
     }
   },

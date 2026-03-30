@@ -81,24 +81,29 @@ export type Database = {
           status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'VACATED' | 'UPCOMING';
           vacate_date: string | null;
           address: string | null;
-          emergency_contact: string | null;
           emergency_contact_phone: string | null;
           created_at: string;
           address_id: string | null;
+          outstanding_balance: number;
         };
       };
       payments: {
         Row: {
           id: string;
           resident_id: string;
-          month: number;
-          year: number;
+          month: string;
           amount: number;
-          status: 'PENDING' | 'PAID' | 'PARTIAL';
+          amount_paid: number;
+          balance: number;
+          status: 'PENDING' | 'SUBMITTED' | 'PAID' | 'PARTIALLY_PAID' | 'REJECTED';
           paid_date: string | null;
           payment_mode: 'Cash' | 'UPI' | 'Bank' | null;
           remarks: string | null;
           created_at: string;
+          transaction_ref?: string | null;
+          screenshot_url?: string | null;
+          submitted_at?: string | null;
+          paid_at?: string | null;
         };
       };
       expenses: {
