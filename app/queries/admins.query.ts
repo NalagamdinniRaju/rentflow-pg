@@ -57,3 +57,43 @@ export const useToggleAdminStatus = createMutation<void, { userId: string; curre
     queryClient.invalidateQueries({ queryKey: adminKeys.all });
   },
 });
+
+export const useAvailableBuildings = createQuery<any[], { adminId: string }>({
+  queryKey: ['available-buildings'],
+  fetcher: async (variables) => {
+    // Get buildings that are either unassigned OR assigned to THIS admin
+    const { data, error } = await supabase
+      .from('buildings')
+      .select('id, name, admin_id, status')
+      .or(`admin_id.is.null, admin_id.eq.${variables.adminId}`);
+    
+    if (error) throw error;
+    return data || [];
+  }
+});
+
+export const useUpdateBuildingAssignments = createMutation<void, { adminId: string; buildingIds: string[] }>({
+  mutationFn: async ({ adminId, buildingIds }) => {
+    // 1. Unassign all buildings currently assigned to this admin
+    const { error: unassignError } = await supabase
+      .from('buildings')
+      .update({ admin_id: null })
+      .eq('admin_id', adminId);
+    
+    if (unassignError) throw unassignError;
+
+    // 2. Assign selected buildings to this admin
+    if (buildingIds.length > 0) {
+      const { error: assignError } = await supabase
+        .from('buildings')
+        .update({ admin_id: adminId })
+        .in('id', buildingIds);
+      
+      if (assignError) throw assignError;
+    }
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['available-buildings'] });
+  }
+});

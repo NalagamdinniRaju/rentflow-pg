@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Users, Plus, ShieldCheck, Phone, Eye, EyeOff, Building2 } from 'lucide-react';
 import { useAdmins, useCreateAdmin, useToggleAdminStatus, useAdminBuildingsByAdminId } from '~/queries/admins.query';
+import { useNavigate } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Card, CardContent } from '~/components/ui/card';
@@ -31,6 +32,7 @@ const adminSchema = z.object({
 type AdminFormValues = z.infer<typeof adminSchema>;
 
 export default function AdminsPage() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
@@ -252,6 +254,14 @@ export default function AdminsPage() {
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                <Button
+                  variant="outline"
+                  className="flex-1 text-amber-600 bg-amber-50 hover:bg-amber-100 hover:text-amber-700 border-0"
+                  onClick={() => navigate(`/super-admin/admins-assign/${admin.user_id}`)}
+                >
+                  <Building2 className="w-4 h-4 mr-2" /> Assign
+                </Button>
 
                 <Button
                   variant={admin.status === 'ACTIVE' ? 'outline' : 'default'}
