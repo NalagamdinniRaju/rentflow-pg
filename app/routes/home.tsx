@@ -4,7 +4,7 @@ import { useAuthStore } from '~/store/auth.store';
 import { 
   ArrowRight, ShieldCheck, Wifi, Utensils, Sparkles, Shield, Zap, 
   ChevronLeft, ChevronRight, User, Phone, MessageCircle, Mail, MapPin,
-  Home, Compass, Heart
+  Home, Compass, Heart, Star
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -132,8 +132,8 @@ export default function HomePage() {
         </section>
 
         {/* Stats Section (Mobile/Desktop friendly) */}
-        <section className="px-6 py-8 bg-surface-container-low md:hidden scroll-reveal opacity-0 translate-y-8" style={{ transitionDelay: '0.1s' }}>
-          <div className="grid grid-cols-2 gap-4 max-w-7xl mx-auto">
+        <section className="px-6 py-8 md:py-16 bg-surface-container-low scroll-reveal opacity-0 translate-y-8" style={{ transitionDelay: '0.1s' }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto">
             <div className="bg-surface-container-lowest p-6 rounded-xl shadow-premium flex flex-col items-center text-center">
               <User className="text-primary w-8 h-8 mb-2" />
               <h3 className="text-2xl font-extrabold text-tertiary">500+</h3>
@@ -261,6 +261,80 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-2">
                 <span className="px-3 py-1 bg-surface-container-high rounded-sm text-[0.7rem] font-bold text-on-surface uppercase tracking-wider">Smart TV</span>
                 <span className="px-3 py-1 bg-surface-container-high rounded-sm text-[0.7rem] font-bold text-on-surface uppercase tracking-wider">Priority Support</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        <section className="bg-surface-container-lowest py-12 md:py-24 px-6" id="reviews">
+          <div className="max-w-7xl mx-auto scroll-reveal opacity-0 translate-y-8">
+            <div className="mb-12 md:mb-16 text-center md:text-left">
+              <h2 className="text-[1.75rem] font-bold text-tertiary font-headline mb-4">What Our Residents Say</h2>
+              <div className="h-1 w-12 bg-primary mt-2 mb-4 rounded-full mx-auto md:mx-0"></div>
+              <p className="text-on-surface-variant max-w-2xl mx-auto md:mx-0">Read about the premium experiences of our modern professionals who call Lucky Luxury their home.</p>
+            </div>
+            
+            <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 pb-4 md:pb-0 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
+              <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
+                <div className="flex gap-1 text-primary-container mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-current" />
+                  ))}
+                </div>
+                <p className="text-on-surface-variant text-sm md:text-base italic mb-8 leading-relaxed">
+                  "The cleanliness and safety protocols are unmatched. The biometric security gives me peace of mind, and the food quality is excellent. A true premium experience that feels like a high-end hotel."
+                </p>
+                <div className="flex items-center gap-4 mt-auto">
+                  <div className="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center font-bold text-on-primary-fixed shrink-0">
+                    AA
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-tertiary">Ananya Agarwal</h4>
+                    <p className="text-xs text-on-surface-variant font-medium">Software Engineer</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
+                <div className="flex gap-1 text-primary-container mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-current" />
+                  ))}
+                </div>
+                <p className="text-on-surface-variant text-sm md:text-base italic mb-8 leading-relaxed">
+                  "Friendly management and top-notch facilities. The gigabit Wi-Fi handles all my remote work needs without a hitch, and the daily housekeeping is incredibly thorough and respectful of my workspace."
+                </p>
+                <div className="flex items-center gap-4 mt-auto">
+                  <div className="w-12 h-12 bg-tertiary-fixed rounded-full flex items-center justify-center font-bold text-on-tertiary-fixed shrink-0">
+                    RM
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-tertiary">Rahul Menon</h4>
+                    <p className="text-xs text-on-surface-variant font-medium">Product Manager</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
+                <div className="flex gap-1 text-primary-container mb-6">
+                  {[...Array(4)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-current" />
+                  ))}
+                  <Star className="w-5 h-5 text-outline-variant fill-current" />
+                </div>
+                <p className="text-on-surface-variant text-sm md:text-base italic mb-8 leading-relaxed">
+                  "Very comfortable beds and great shared spaces. The food tastes just like home, and any maintenance requests are handled almost immediately by the concierge team. Highly recommended!"
+                </p>
+                <div className="flex items-center gap-4 mt-auto">
+                  <div className="w-12 h-12 bg-secondary-fixed rounded-full flex items-center justify-center font-bold text-on-secondary-fixed shrink-0">
+                    SK
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-tertiary">Sneha Kapoor</h4>
+                    <p className="text-xs text-on-surface-variant font-medium">Data Analyst</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
