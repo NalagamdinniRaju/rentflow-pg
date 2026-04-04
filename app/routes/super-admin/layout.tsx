@@ -52,13 +52,11 @@ export default function SuperAdminLayout() {
           isCollapsed ? "md:w-20" : "w-64"
         )}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 mb-4 shrink-0">
-          <div className={cn("flex items-center gap-3 text-slate-900 overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
-            {!isCollapsed && <span className="font-bold tracking-tight whitespace-nowrap md:block hidden">Super Admin</span>}
-            <span className="font-bold tracking-tight whitespace-nowrap block md:hidden ml-3">Super Admin</span>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0 bg-white shadow-sm mb-4">
+          <div className={cn("flex items-center gap-3 overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
+            <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+            {!isCollapsed && <span className="font-extrabold text-[#072b7e] tracking-tight whitespace-nowrap md:block hidden mt-0.5">Lucky Luxury PG Services</span>}
+            <span className="font-extrabold text-[#072b7e] tracking-tight whitespace-nowrap block md:hidden ml-3 mt-0.5">Lucky Luxury PG</span>
           </div>
           {/* Mobile close button */}
           <Button variant="ghost" size="icon" className="md:hidden text-slate-500 hover:bg-slate-100" onClick={() => setIsMobileOpen(false)}>
@@ -152,10 +150,8 @@ export default function SuperAdminLayout() {
               <Menu className="w-6 h-6" />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-slate-900 tracking-tight">Super Admin</span>
+              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+              <span className="font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG</span>
             </div>
           </div>
         </header>

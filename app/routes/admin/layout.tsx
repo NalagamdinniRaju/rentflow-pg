@@ -120,15 +120,13 @@ export default function AdminLayout() {
             isCollapsed ? "md:w-20" : "w-64"
           )}
         >
-          <div className={cn("h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0 shadow-sm transition-colors", user.role === 'SUPER_ADMIN' ? 'bg-slate-800' : 'bg-emerald-600')}>
-            <div className={cn("flex items-center gap-3 text-white overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                {user.role === 'SUPER_ADMIN' ? <Settings className="w-4 h-4 text-white" /> : <Building2 className="w-4 h-4 text-white" />}
-              </div>
-              {!isCollapsed && <span className="font-bold tracking-tight whitespace-nowrap md:block hidden">{user.role === 'SUPER_ADMIN' ? 'System Proxy' : 'PG Manager'}</span>}
-              <span className="font-bold tracking-tight whitespace-nowrap block md:hidden ml-3">{user.role === 'SUPER_ADMIN' ? 'System Proxy' : 'PG Manager'}</span>
+          <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 shrink-0 shadow-sm transition-colors bg-white">
+            <div className={cn("flex items-center gap-3 overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
+              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+              {!isCollapsed && <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] md:block hidden mt-0.5">Lucky Luxury PG Services</span>}
+              <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] block md:hidden ml-3 mt-0.5">Lucky Luxury PG</span>
             </div>
-            <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10" onClick={() => setIsMobileOpen(false)}>
+            <Button variant="ghost" size="icon" className="md:hidden text-slate-500 hover:bg-slate-100" onClick={() => setIsMobileOpen(false)}>
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -207,16 +205,14 @@ export default function AdminLayout() {
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Mobile Header (Admin context) */}
-          <header className={cn("md:hidden h-16 border-b flex items-center justify-between px-4 z-10 shrink-0 shadow-sm", user.role === 'SUPER_ADMIN' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-600 border-emerald-700')}>
-            <div className="flex items-center gap-3 text-white">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 -ml-2" onClick={() => setIsMobileOpen(true)}>
+          <header className={cn("md:hidden h-16 border-b flex items-center justify-between px-4 z-10 shrink-0 shadow-sm bg-white")}>
+            <div className="flex items-center gap-3 text-slate-900">
+              <Button variant="ghost" size="icon" className="text-slate-500 hover:bg-slate-100 -ml-2" onClick={() => setIsMobileOpen(true)}>
                 <Menu className="w-6 h-6" />
               </Button>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold tracking-tight">{user.role === 'SUPER_ADMIN' ? 'System Proxy' : 'PG Manager'}</span>
+                <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+                <span className="font-extrabold tracking-tight text-[#072b7e] mt-0.5">Lucky Luxury PG</span>
               </div>
             </div>
             {isImpersonating && (

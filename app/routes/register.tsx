@@ -95,11 +95,9 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-900">Lucky Luxury PG</span>
+          <Link to="/" className="inline-flex items-center justify-center gap-3 mb-6">
+            <img alt="Lucky Luxury Logo" className="h-14 md:h-16 w-auto object-contain shrink-0" src="/logo.png" />
+            <span className="text-xl md:text-2xl font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG Services</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">Register for a PG Account</h1>
           <p className="text-slate-500 mt-2">Fill in your details to apply for a room</p>

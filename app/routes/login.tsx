@@ -59,8 +59,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-6">
-            <Building2 className="w-8 h-8 text-white" />
+          <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+            <img alt="Lucky Luxury Logo" className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0" src="/logo.png" />
+            <span className="font-extrabold text-[#072b7e] text-xl sm:text-2xl tracking-tight block mt-0.5 text-center">Lucky Luxury PG Services</span>
           </div>
           <h2 className="text-center text-3xl font-extrabold text-slate-900 tracking-tight">
             Sign in to your account
