@@ -54,6 +54,7 @@ export default function AdminLayout() {
     { icon: Receipt, label: 'Expenses', path: '/admin/expenses' },
     { icon: Bell, label: 'Reminders', path: '/admin/reminders' },
     { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
+    { icon: IndianRupee, label: 'UPI Config', path: '/admin/upi-settings' },
     { icon: Tags, label: 'Room Types', path: '/admin/room-types' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];

@@ -10,6 +10,7 @@ type PaymentRow = Database['public']['Tables']['payments']['Row'];
 
 export interface PaymentWithResident extends PaymentRow {
   resident: {
+    id: string;
     name: string;
     phone: string;
     room_id: string;
@@ -59,7 +60,7 @@ export const useMonthlyPayments = createQuery<PaymentWithResident[], PaymentsQue
       .from('payments')
       .select(`
         *,
-        resident:residents(name, phone, room_id, room:rooms(room_number))
+        resident:residents(id, name, phone, room_id, room:rooms(room_number))
       `)
       .in('resident_id', residentIds)
       .eq('month', monthLabel);
@@ -139,7 +140,7 @@ export const useDefaulters = createQuery<PaymentWithResident[], { buildingIds: s
       .from('payments')
       .select(`
         *,
-        resident:residents(name, phone, room:rooms(room_number), building:buildings(name))
+        resident:residents(id, name, phone, room:rooms(room_number), building:buildings(name, upi_id, upi_name, qr_code_url))
       `)
       .in('resident_id', residentIds)
       .eq('status', 'PENDING')

@@ -25,6 +25,9 @@ export type Database = {
           id: string;
           admin_id: string | null;
           name: string;
+          upi_id: string | null;
+          upi_name: string | null;
+          qr_code_url: string | null;
           location: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
@@ -158,6 +161,9 @@ export type Database = {
       system_settings: {
         Row: {
           id: string;
+          upi_id: string | null;
+          upi_name: string | null;
+          qr_code_url: string | null;
           default_monthly_rent: number;
           default_daily_rent: number;
           default_deposit: number;

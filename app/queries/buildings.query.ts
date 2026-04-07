@@ -234,6 +234,9 @@ interface UpdateBuildingVariables {
   name: string;
   admin_id: string | null;
   status: string;
+  upi_id?: string | null;
+  upi_name?: string | null;
+  qr_code_url?: string | null;
 }
 
 /** Update building details (name, admin, status) - super admin */
@@ -243,6 +246,9 @@ export const useUpdateBuilding = createMutation<void, UpdateBuildingVariables>({
       name: variables.name,
       admin_id: variables.admin_id,
       status: variables.status,
+      upi_id: variables.upi_id,
+      upi_name: variables.upi_name,
+      qr_code_url: variables.qr_code_url,
     }).eq('id', variables.buildingId);
     unwrapSupabaseResponse(response);
   },

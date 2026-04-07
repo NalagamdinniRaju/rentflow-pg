@@ -4,19 +4,23 @@ import { useParams, useNavigate, Link } from 'react-router';
 import { 
   User, Phone, Mail, MapPin, Calendar, Building2, Bed, 
   IndianRupee, CreditCard, Clock, FileText, CheckCircle, 
-  XCircle, AlertCircle, ChevronLeft, Download, Send, LifeBuoy
+  XCircle, AlertCircle, ChevronLeft, Download, Send, LifeBuoy, Eye
 } from 'lucide-react';
 import { useResidentById, useUpdateResidentStatus } from '~/queries/residents.query';
 import { useResidentPayments } from '~/queries/payments.query';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger 
+} from '~/components/ui/dialog';
 import { getStatusColor, formatCurrency, cn } from '~/lib/utils';
 import { toast } from 'sonner';
 
 export default function ResidentProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [isAadharModalOpen, setIsAadharModalOpen] = useState(false);
 
   const { data: resident, isLoading: loadingResident } = useResidentById({
     variables: { residentId: id || '' },
@@ -137,11 +141,32 @@ export default function ResidentProfilePage() {
                   <span className="text-sm font-medium">AADHAR (Front)</span>
                 </div>
                 {resident.aadhar_photo ? (
-                  <a href={resident.aadhar_photo} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </a>
+                  <div className="flex gap-1">
+                    <Dialog open={isAadharModalOpen} onOpenChange={setIsAadharModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Aadhar Card - {resident.name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex justify-center items-center p-4 bg-slate-50 rounded-xl">
+                          <img 
+                            src={resident.aadhar_photo} 
+                            alt="Aadhar Card" 
+                            className="max-w-full h-auto rounded-lg shadow-sm"
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <a href={resident.aadhar_photo} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </a>
+                  </div>
                 ) : <span className="text-xs text-slate-400">Missing</span>}
               </div>
               <Button className="w-full" variant="outline" size="sm">

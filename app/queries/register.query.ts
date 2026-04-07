@@ -88,7 +88,7 @@ export const useRegisterUser = createMutation<void, any>({
   mutationFn: async (variables) => {
     const { 
       email, password, name, phone, line_one, line_two, pincode, city_id, 
-      building_id, floor_id, room_id, seat_id, age, gender 
+      building_id, floor_id, room_id, seat_id, age, gender, aadhar_file
     } = variables;
 
     // 1. Auth creation
@@ -101,7 +101,24 @@ export const useRegisterUser = createMutation<void, any>({
     if (!authData.user) throw new Error('Registration failed');
     const userId = authData.user.id;
 
-    // 2. Insert address
+    // 2. Upload Aadhar if exists
+    let aadharUrl = null;
+    if (aadhar_file) {
+      const fileExt = aadhar_file.name.split('.').pop();
+      const filePath = `documents/${userId}/aadhar_registration_${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('resident-documents')
+        .upload(filePath, aadhar_file);
+      
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('resident-documents')
+        .getPublicUrl(filePath);
+      aadharUrl = publicUrl;
+    }
+
+    // 3. Insert address
     const { data: addrData, error: addrError } = await supabase
       .from('addresses')
       .insert({ line_one, line_two: line_two || null, pincode, city_id })
@@ -109,7 +126,7 @@ export const useRegisterUser = createMutation<void, any>({
       .single();
     if (addrError) throw addrError;
 
-    // 3. User Role mapping
+    // 4. User Role mapping
     const { error: roleError } = await supabase.from('user_roles').insert({
       user_id: userId,
       role: 'RESIDENT',
@@ -119,7 +136,7 @@ export const useRegisterUser = createMutation<void, any>({
     });
     if (roleError) throw roleError;
 
-    // 4. Resident Record creation
+    // 5. Resident Record creation
     const { error: resError } = await supabase.from('residents').insert({
       user_id: userId,
       building_id,
@@ -133,6 +150,7 @@ export const useRegisterUser = createMutation<void, any>({
       gender: gender || null,
       status: 'PENDING',
       address_id: addrData.id,
+      aadhar_photo: aadharUrl,
     });
     if (resError) throw resError;
   }

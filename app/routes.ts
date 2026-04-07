@@ -17,6 +17,7 @@ export default [
     route("super-admin/admins-assign/:id", "routes/super-admin/admins-assign.$id.tsx"),
     route("super-admin/locations", "routes/super-admin/locations.tsx"),
     route("super-admin/settings", "routes/super-admin/settings.tsx"),
+    route("super-admin/upi-settings", "routes/super-admin/upi-settings.tsx"),
   ]),
 
   // Admin Routes
@@ -32,6 +33,7 @@ export default [
     route("admin/expenses", "routes/admin/expenses.tsx"),
     route("admin/reminders", "routes/admin/reminders.tsx"),
     route("admin/reports", "routes/admin/reports.tsx"),
+    route("admin/upi-settings", "routes/admin/upi-settings.tsx"),
     route("admin/room-types", "routes/admin/room-types.tsx"),
     route("admin/settings", "routes/admin/settings.tsx"),
   ]),

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router';
-import { Building2, Users, MapPin, Settings, LogOut, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, Users, MapPin, Settings, LogOut, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight, IndianRupee } from 'lucide-react';
 import { useAuthStore } from '~/store/auth.store';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
@@ -29,6 +29,7 @@ export default function SuperAdminLayout() {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/super-admin' },
     { icon: Building2, label: 'Buildings', path: '/super-admin/buildings' },
+    { icon: IndianRupee, label: 'UPI Settings', path: '/super-admin/upi-settings' },
     { icon: Users, label: 'PG Admins', path: '/super-admin/admins' },
     { icon: MapPin, label: 'Locations', path: '/super-admin/locations' },
     { icon: Settings, label: 'System Settings', path: '/super-admin/settings' },

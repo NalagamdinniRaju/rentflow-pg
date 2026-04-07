@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Building2, Eye, EyeOff } from 'lucide-react';
+import { Building2, Eye, EyeOff, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -35,6 +35,9 @@ export default function RegisterPage() {
     if (typeof window === 'undefined') return false;
     return sessionStorage.getItem('register_agreed') === 'true';
   });
+  
+  const [aadharFile, setAadharFile] = useState<File | null>(null);
+  const [aadharPreview, setAadharPreview] = useState<string | null>(null);
   
   const [form, setForm] = useState(() => {
     const defaultForm = {
@@ -99,7 +102,10 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await registerUser(form as any);
+      await registerUser({ 
+        ...form, 
+        aadhar_file: aadharFile 
+      } as any);
       sessionStorage.removeItem('register_step');
       sessionStorage.removeItem('register_form');
       sessionStorage.removeItem('register_agreed');
@@ -112,7 +118,7 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
-  }, [form, navigate, registerUser, authStore]);
+  }, [form, aadharFile, navigate, registerUser, authStore]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4">
@@ -129,12 +135,12 @@ export default function RegisterPage() {
 
         {/* Steps */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          {[1, 2, 3].map(s => (
+          {[1, 2, 3, 4].map(s => (
             <div key={s} className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${s <= step ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                 {s}
               </div>
-              {s < 3 && <div className={`h-0.5 w-16 transition-all ${s < step ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+              {s < 4 && <div className={`h-0.5 w-12 transition-all ${s < step ? 'bg-blue-600' : 'bg-slate-200'}`} />}
             </div>
           ))}
         </div>
@@ -304,8 +310,75 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 3: Password */}
+            {/* Step 3: Aadhar Upload */}
             {step === 3 && (
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-bold text-slate-900">Upload Aadhar Card</h2>
+                  <p className="text-sm text-slate-500">Please upload a clear photo of your Aadhar card for verification.</p>
+                </div>
+
+                <div className="flex flex-col items-center justify-center">
+                  <label 
+                    htmlFor="aadhar-upload"
+                    className={`relative w-full aspect-[1.6/1] max-w-md border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer transition-all overflow-hidden
+                      ${aadharPreview ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'}`}
+                  >
+                    {aadharPreview ? (
+                      <>
+                        <img src={aadharPreview} alt="Aadhar Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 text-white text-xs font-semibold">
+                            Change Document
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-400">
+                          <Upload className="w-8 h-8" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-semibold text-slate-900">Click to upload or drag and drop</p>
+                          <p className="text-xs text-slate-500 mt-1">JPG, PNG or PDF (max. 5MB)</p>
+                        </div>
+                      </>
+                    )}
+                    <input 
+                      id="aadhar-upload" 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*,.pdf" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAadharFile(file);
+                          const url = URL.createObjectURL(file);
+                          setAadharPreview(url);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+                  <div className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                    <span className="text-[10px] font-bold">!</span>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    <strong>Important:</strong> Ensure all details like Name, Date of Birth, and Aadhar Number are clearly visible. Registration may be rejected if the document is blurry.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(2)}>← Back</Button>
+                  <Button type="button" className="flex-1" size="lg" disabled={!aadharFile} onClick={() => setStep(4)}>Continue →</Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Password */}
+            {step === 4 && (
               <div className="space-y-5">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">Create Password</h2>
                 <div className="space-y-2">
@@ -339,7 +412,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(2)}>← Back</Button>
+                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(3)}>← Back</Button>
                   <Button type="submit" className="flex-1" size="lg" loading={loading} disabled={!agreed || !form.password || !form.confirm_password}>Register</Button>
                 </div>
               </div>
