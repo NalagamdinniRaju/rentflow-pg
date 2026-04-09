@@ -429,6 +429,94 @@ export const useDeleteBed = createMutation<void, string>({
   onSuccess: () => queryClient.invalidateQueries({ queryKey: buildingKeys.all })
 });
 
+// ─── Address Update ───────────────────────────────────────────────────────
+
+interface UpdateAddressVariables {
+  addressId: string;
+  line_one?: string;
+  line_two?: string;
+  city_id?: string;
+  pincode?: string;
+}
+
+export const useUpdateAddress = createMutation<void, UpdateAddressVariables>({
+  mutationFn: async (variables) => {
+    const { addressId, ...updates } = variables;
+    const cleanUpdates: any = {};
+    if (updates.line_one !== undefined) cleanUpdates.line_one = updates.line_one;
+    if (updates.line_two !== undefined) cleanUpdates.line_two = updates.line_two;
+    if (updates.city_id !== undefined) cleanUpdates.city_id = updates.city_id;
+    if (updates.pincode !== undefined) cleanUpdates.pincode = updates.pincode;
+
+    const response = await supabase.from('addresses').update(cleanUpdates).eq('id', addressId);
+    unwrapSupabaseResponse(response);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+  },
+});
+
+// ─── Floor Update ─────────────────────────────────────────────────────────
+
+interface UpdateFloorVariables {
+  floorId: string;
+  floorNumber: string;
+}
+
+export const useUpdateFloor = createMutation<void, UpdateFloorVariables>({
+  mutationFn: async (variables) => {
+    const response = await supabase
+      .from('floors')
+      .update({ floor_number: variables.floorNumber })
+      .eq('id', variables.floorId);
+    unwrapSupabaseResponse(response);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+  },
+});
+
+// ─── Add Seat to Existing Room ────────────────────────────────────────────
+
+interface AddSeatVariables {
+  roomId: string;
+  seatNumber: string;
+}
+
+export const useAddSeat = createMutation<void, AddSeatVariables>({
+  mutationFn: async (variables) => {
+    // Check for duplicate seat number in the same room
+    const { data: dup } = await supabase
+      .from('seats')
+      .select('id')
+      .eq('room_id', variables.roomId)
+      .eq('seat_number', variables.seatNumber)
+      .maybeSingle();
+    if (dup) throw new Error(`Seat ${variables.seatNumber} already exists in this room`);
+
+    const response = await supabase.from('seats').insert({
+      room_id: variables.roomId,
+      seat_number: variables.seatNumber,
+      status: 'AVAILABLE',
+    });
+    unwrapSupabaseResponse(response);
+
+    // Update room total_seats count
+    const { data: seatsCount } = await supabase
+      .from('seats')
+      .select('id', { count: 'exact' })
+      .eq('room_id', variables.roomId);
+    
+    await supabase
+      .from('rooms')
+      .update({ total_seats: seatsCount?.length || 0 })
+      .eq('id', variables.roomId);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+  },
+});
+
 // ─── Invalidation helpers ─────────────────────────────────────────────────
 
 export function invalidateBuildings() {

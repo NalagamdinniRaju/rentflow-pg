@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from 'react';
 import { Building2, Plus, MapPin, UserSquare2, ChevronRight, Hash, Layers, Pencil, LayoutDashboard } from 'lucide-react';
-import { useAllBuildings, useCities, useAddBuilding, useUpdateBuilding } from '~/queries/buildings.query';
+import { useAllBuildings, useCities, useAddBuilding, useUpdateBuilding, useUpdateAddress } from '~/queries/buildings.query';
 import { useAdmins } from '~/queries/admins.query';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -61,6 +61,7 @@ export default function BuildingsPage() {
 
   const addBuildingProps = useAddBuilding();
   const updateBuildingProps = useUpdateBuilding();
+  const { mutateAsync: updateAddressMutation, isPending: updatingAddr } = useUpdateAddress();
 
   const form = useForm<BuildingFormValues>({
     resolver: zodResolver(buildingSchema),
@@ -79,7 +80,10 @@ export default function BuildingsPage() {
     defaultValues: {
       name: '',
       admin_id: 'none',
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      line_one: '',
+      city_id: '',
+      pincode: ''
     }
   });
 
@@ -109,13 +113,25 @@ export default function BuildingsPage() {
     editForm.reset({
       name: building.name,
       admin_id: building.admin_id || 'none',
-      status: building.status || 'ACTIVE'
+      status: building.status || 'ACTIVE',
+      line_one: building.address?.line_one || '',
+      city_id: building.address?.city_id || '',
+      pincode: building.address?.pincode || ''
     });
     setEditOpen(true);
   };
 
   const onEditSubmit = async (values: any) => {
     try {
+      if (selectedBuilding?.address?.id) {
+        await updateAddressMutation({
+          addressId: selectedBuilding.address.id,
+          line_one: values.line_one,
+          city_id: values.city_id,
+          pincode: values.pincode,
+        });
+      }
+
       await updateBuildingProps.mutateAsync({
         buildingId: selectedBuilding.id,
         name: values.name,
@@ -123,7 +139,7 @@ export default function BuildingsPage() {
         status: values.status
       });
 
-      toast.success('Building updated successfully');
+      toast.success('Building and address updated successfully');
       setEditOpen(false);
     } catch (err: any) {
       toast.error(err.message || 'Failed to update building');
@@ -132,26 +148,26 @@ export default function BuildingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             Buildings Overview
           </h1>
-          <p className="text-slate-500 mt-1">Manage physical properties and their layouts</p>
+          <p className="text-slate-500 mt-1 text-sm">Manage physical properties and their layouts</p>
         </div>
         
         <Dialog open={open} onOpenChange={(val: boolean) => { setOpen(val); if(!val) form.reset(); }}>
           <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-blue-500/20"><Plus className="w-4 h-4 mr-2" /> Add Building</Button>
+            <Button className="w-full sm:w-auto shadow-lg shadow-blue-500/20"><Plus className="w-4 h-4 mr-2" /> Add Building</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl text-left">
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto text-left">
             <DialogHeader>
               <DialogTitle>Add New Building</DialogTitle>
             </DialogHeader>
             <div className="py-4">
                <Form {...form}>
-                 <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
+                 <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-4">
                       <h3 className="font-semibold text-slate-900 border-b pb-2">Basic Info</h3>
                       
@@ -189,7 +205,7 @@ export default function BuildingsPage() {
                         )}
                       />
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <FormField
                           control={form.control}
                           name="floors"
@@ -270,7 +286,7 @@ export default function BuildingsPage() {
                       />
                     </div>
 
-                    <div className="col-span-2 mt-4">
+                    <div className="col-span-1 md:col-span-2 mt-4">
                       <Button type="submit" className="w-full" disabled={form.formState.isSubmitting} size="lg">Auto-Generate Floors & Rooms</Button>
                       <p className="text-xs text-center text-slate-500 mt-2">This will automatically structure the building layout.</p>
                     </div>
@@ -280,8 +296,9 @@ export default function BuildingsPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Edit Building Modal */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Building</DialogTitle>
             </DialogHeader>
@@ -341,20 +358,71 @@ export default function BuildingsPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={editForm.formState.isSubmitting}>
-                  Save Changes
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold text-slate-900">Address Details</h3>
+                  <FormField
+                    control={editForm.control}
+                    name="line_one"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Street Address *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Door No, Street" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="city_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City *</FormLabel>
+                        <FormControl>
+                          <CityCombobox
+                            initialCities={cities}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Search and select city…"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="pincode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pincode</FormLabel>
+                        <FormControl>
+                          <Input placeholder="560001" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full mt-4" disabled={editForm.formState.isSubmitting || updatingAddr}>
+                  {editForm.formState.isSubmitting || updatingAddr ? 'Saving...' : 'Save Changes'}
                 </Button>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
+
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {buildings.map(b => (
           <Card key={b.id} className="overflow-hidden hover:shadow-md transition-shadow">
             <div className="h-2 bg-gradient-to-r from-blue-500 to-blue-700" />
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -363,30 +431,32 @@ export default function BuildingsPage() {
                       <Pencil className="w-3 h-3" />
                     </Button>
                   </div>
-                  <div className="flex items-center text-slate-500 text-xs">
-                     <MapPin className="w-3 h-3 mr-1" />
-                     {b.address?.line_one || '-'}, {b.address?.city?.name || '-'}
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center text-slate-500 text-xs flex-1 min-w-0">
+                       <MapPin className="w-3 h-3 mr-1 shrink-0" />
+                       <span className="truncate">{b.address?.line_one || '-'}, {b.address?.city?.name || '-'}</span>
+                    </div>
                   </div>
                 </div>
                 <Badge className={getStatusColor(b.status)}>{b.status}</Badge>
               </div>
               
-              <div className="bg-slate-50 rounded-xl p-4 mt-6 border border-slate-100 flex items-center justify-between">
+              <div className="bg-slate-50 rounded-xl p-3 sm:p-4 mt-6 border border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
                   <UserSquare2 className="w-4 h-4 text-blue-500" />
                   Admin
                 </div>
-                <span className="font-bold text-slate-900">{b.admin?.name || 'Unassigned'}</span>
+                <span className="font-bold text-slate-900 text-sm truncate ml-2">{b.admin?.name || 'Unassigned'}</span>
               </div>
 
-              <div className="mt-6 flex gap-2">
+              <div className="mt-4 sm:mt-6 flex gap-2">
                 <Button 
                   variant="outline" 
                    className="flex-1 text-xs font-bold border-slate-200 hover:bg-slate-50"
                    onClick={() => handleManageBuilding(b)}
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5 mr-2 text-blue-600" />
-                  Manage Property
+                  <LayoutDashboard className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                  Manage
                 </Button>
                 <Button variant="ghost" size="icon" className="border border-slate-100">
                   <ChevronRight className="w-4 h-4 text-slate-400" />

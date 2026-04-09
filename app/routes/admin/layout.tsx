@@ -48,7 +48,7 @@ export default function AdminLayout() {
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-    ...(user.role === 'SUPER_ADMIN' && isImpersonating ? [] : [{ icon: Building2, label: 'Buildings', path: '/admin/buildings' }]),
+    { icon: Building2, label: 'Buildings', path: '/admin/buildings' },
     { icon: Users, label: 'Residents', path: '/admin/residents' },
     { icon: IndianRupee, label: 'Payments', path: '/admin/payments' },
     { icon: Receipt, label: 'Expenses', path: '/admin/expenses' },
