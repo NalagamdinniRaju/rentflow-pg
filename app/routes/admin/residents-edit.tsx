@@ -174,8 +174,8 @@ export default function EditResidentPage() {
                    </div>
                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-blue-700">
                      <span>Building: <span className="font-semibold">{resident?.building?.name}</span></span>
-                     <span>Room: <span className="font-semibold">{resident?.room?.room_number}</span></span>
-                     <span>Type: <span className="font-semibold">{resident?.room?.room_types?.name || 'N/A'}</span></span>
+                     <span>Flat: <span className="font-semibold">{resident?.room?.room_number}</span></span>
+                     <span>Flat Type: <span className="font-semibold">{resident?.room?.room_types?.name || 'N/A'}</span></span>
                      <span>Sharing: <span className="font-semibold">{resident?.room?.sharing_types?.name || 'N/A'}</span></span>
                      <span>Bed: <span className="font-semibold">{resident?.seat?.seat_number}</span></span>
                    </div>

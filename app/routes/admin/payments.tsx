@@ -267,7 +267,7 @@ export default function PaymentsPage() {
                        <div>
                          <h3 className="text-lg font-bold text-slate-900">{p.resident?.name || 'Unknown'}</h3>
                          <div className="text-sm text-slate-500 flex items-center gap-3 mt-1 font-medium">
-                           <span>Room: {p.resident?.room?.room_number || '-'}</span>
+                           <span>Flat: {p.resident?.room?.room_number || '-'}</span>
                            <span className="w-1 h-1 bg-slate-300 rounded-full" />
                            <span>{p.resident?.phone || '-'}</span>
                          </div>
