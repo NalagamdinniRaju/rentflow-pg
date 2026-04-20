@@ -48,18 +48,18 @@ export default function AdminRoomTypes() {
     if (!rtName) return;
     try {
       await createRT({ name: rtName });
-      toast.success("Room type created!");
+      toast.success("Flat type created!");
       setRtName('');
       setOpenRTCreation(false);
     } catch (e: any) {
-      toast.error(e.message || "Failed to create room type");
+      toast.error(e.message || "Failed to create flat type");
     }
   };
 
   const handleDeleteRoomType = async (id: string) => {
     try {
       await deleteRT({ id });
-      toast.success("Room type deleted!");
+      toast.success("Flat type deleted!");
     } catch (e: any) {
       toast.error(e.message || "Cannot delete type in use");
     }
@@ -95,18 +95,18 @@ export default function AdminRoomTypes() {
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Tags className="w-6 h-6 text-indigo-600" />
-            Room Configurations
+            Flat Configurations
           </h1>
-          <p className="text-slate-500 mt-1">Manage room and sharing classifications used across buildings</p>
+          <p className="text-slate-500 mt-1">Manage flat and sharing classifications used across buildings</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Room Types */}
+        {/* Flat Types */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
              <div className="space-y-1">
-               <CardTitle className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-indigo-500" /> Room Types</CardTitle>
+               <CardTitle className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-indigo-500" /> Flat Types</CardTitle>
                <CardDescription>e.g. AC, Non-AC, Premium</CardDescription>
              </div>
              
@@ -115,7 +115,7 @@ export default function AdminRoomTypes() {
                  <Button size="sm"><Plus className="w-4 h-4 mr-1"/> Add</Button>
                </DialogTrigger>
                <DialogContent className="max-w-sm">
-                 <DialogHeader><DialogTitle>New Room Type</DialogTitle></DialogHeader>
+                 <DialogHeader><DialogTitle>New Flat Type</DialogTitle></DialogHeader>
                  <div className="space-y-4 py-4">
                    <div className="space-y-2">
                      <Label>Name</Label>
@@ -140,7 +140,7 @@ export default function AdminRoomTypes() {
                  </div>
                ))}
                {roomTypes.length === 0 && (
-                 <p className="text-sm text-center text-slate-400 py-4">No room types configured.</p>
+                 <p className="text-sm text-center text-slate-400 py-4">No flat types configured.</p>
                )}
              </div>
           </CardContent>

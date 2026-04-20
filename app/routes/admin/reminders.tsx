@@ -161,7 +161,7 @@ export default function RemindersPage() {
                      <h3 className="font-bold text-lg text-slate-900">{p.resident?.name || 'Unknown'}</h3>
                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-slate-500">
                        <span className="flex items-center gap-1 font-medium bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">
-                         {p.resident?.building?.name} - {p.resident?.room?.room_number}
+                         {p.resident?.building?.name} - Flat {p.resident?.room?.room_number}
                        </span>
                        <span className="flex items-center gap-1 text-blue-600 font-medium">
                          <Phone className="w-3.5 h-3.5" /> {p.resident?.phone}

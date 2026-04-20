@@ -160,7 +160,7 @@ interface AddBuildingVariables {
   seats_per_floor?: number;
 }
 
-/** Create a new building with auto-generated layout (floors, single room per floor, seats) */
+/** Create a new building with auto-generated layout (floors, single flat per floor, seats) */
 export const useAddBuilding = createMutation<void, AddBuildingVariables>({
   mutationFn: async (variables) => {
     // 1. Create address
@@ -336,7 +336,7 @@ export const useAddRoom = createMutation<void, AddRoomVariables>({
       if (st) capacity = st.capacity;
     }
 
-    // 2. Create Room
+    // 2. Create Flat
     const roomResp = await supabase.from('rooms').insert({
       floor_id: variables.floorId,
       room_number: variables.roomNumber,
@@ -380,13 +380,13 @@ export const useUpdateRoom = createMutation<void, UpdateRoomVariables>({
       .eq('id', roomId)
       .single();
     
-    if (roomErr || !room) throw new Error("Room not found");
+    if (roomErr || !room) throw new Error("Flat not found");
 
     const updateData: any = {};
     if (roomNumber) {
       // Check for duplicate room number on the same floor
       const { data: dup } = await supabase.from('rooms').select('id').eq('floor_id', room.floor_id).eq('room_number', roomNumber).neq('id', roomId).maybeSingle();
-      if (dup) throw new Error(`Room number ${roomNumber} already exists on this floor`);
+      if (dup) throw new Error(`Flat number ${roomNumber} already exists on this floor`);
       updateData.room_number = roomNumber;
     }
     
@@ -493,7 +493,7 @@ export const useDeleteRoom = createMutation<void, { roomId: string }>({
     
     if (resErr) {
       console.error("Error unassigning residents:", resErr);
-      throw new Error("Failed to unassign residents before room deletion");
+      throw new Error("Failed to unassign residents before flat deletion");
     }
 
     // 3. Delete all seats
@@ -617,7 +617,7 @@ export const useAddSeat = createMutation<void, AddSeatVariables>({
       .eq('room_id', variables.roomId)
       .eq('seat_number', variables.seatNumber)
       .maybeSingle();
-    if (dup) throw new Error(`Seat ${variables.seatNumber} already exists in this room`);
+    if (dup) throw new Error(`Seat ${variables.seatNumber} already exists in this flat`);
 
     const response = await supabase.from('seats').insert({
       room_id: variables.roomId,

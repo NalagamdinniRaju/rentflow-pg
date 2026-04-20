@@ -136,7 +136,7 @@ export default function HomePage() {
           <div className="hidden md:flex items-center gap-8">
             <Link className="text-[#072b7e] font-bold font-manrope text-sm transition-colors" to="/">Home</Link>
             <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#amenities">Amenities</a>
-            <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#rooms">Rooms</a>
+            <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#flats">Flats</a>
             <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#contact">Contact</a>
             
             <Link className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 active:scale-95 duration-200 transition-all shadow-md" to="/register">Register</Link>
@@ -255,12 +255,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Rooms / Gallery Section */}
-        <section className="py-12 md:py-24 px-6 max-w-7xl mx-auto overflow-hidden" id="rooms">
+        {/* Flats / Gallery Section */}
+        <section className="py-12 md:py-24 px-6 max-w-7xl mx-auto overflow-hidden" id="flats">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-16 gap-6 scroll-reveal opacity-0 translate-y-8">
             <div>
               <h2 className="text-[1.75rem] font-bold text-tertiary font-headline mb-4">Available Options</h2>
-              <p className="text-on-surface-variant max-w-xl text-sm md:text-base">Select the configuration that suits your needs. Each room is fully furnished with premium linens and ergonomic furniture.</p>
+              <p className="text-on-surface-variant max-w-xl text-sm md:text-base">Select the configuration that suits your needs. Each flat is fully furnished with premium linens and ergonomic furniture.</p>
             </div>
             <div className="hidden md:flex gap-4">
               <button className="p-3 rounded-full border border-outline-variant text-primary hover:bg-surface-container-low transition-all">
@@ -273,10 +273,10 @@ export default function HomePage() {
           </div>
           
           <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible gap-4 md:gap-8 pb-4 md:pb-0 scroll-reveal opacity-0 translate-y-8 snap-x snap-mandatory">
-            {/* Room Card 1 */}
+            {/* Flat Card 1 */}
             <div className="group flex-none w-[85%] md:w-auto snap-center">
               <div className="relative aspect-video md:aspect-video rounded-xl overflow-hidden mb-6">
-                <img alt="spacious single occupancy room" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFGZNIGSezL2fOWESITZwDsU_X73AfRUZmEldSb6jRmSBH2BI5Ivqhgj4Il5Wq6XDCn9QzEBYNC77x1Vu-4Jz_nvW9XINQ1IDpqX9n7waIMGjr36P9L73YSNpb8ApNS09PBvBKWLX51yvDr6GOiLEWWehCLL0uaOgCz_dhLVthFG1tB4WF8iz3YoklKQ_yjlav9U0Lzc44UXbJI4TNtwbpWG0b5g8OQWCNb7XiZQBC6ZkncYL6THnreIsB5z3AqvlVL0OJbxx_9Jc" />
+                <img alt="spacious single occupancy flat" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFGZNIGSezL2fOWESITZwDsU_X73AfRUZmEldSb6jRmSBH2BI5Ivqhgj4Il5Wq6XDCn9QzEBYNC77x1Vu-4Jz_nvW9XINQ1IDpqX9n7waIMGjr36P9L73YSNpb8ApNS09PBvBKWLX51yvDr6GOiLEWWehCLL0uaOgCz_dhLVthFG1tB4WF8iz3YoklKQ_yjlav9U0Lzc44UXbJI4TNtwbpWG0b5g8OQWCNb7XiZQBC6ZkncYL6THnreIsB5z3AqvlVL0OJbxx_9Jc" />
                 <div className="absolute top-4 right-4 bg-surface-container-lowest px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">One Sharing</div>
               </div>
               <h3 className="text-xl font-bold text-tertiary mb-2">One Sharing</h3>
@@ -285,10 +285,10 @@ export default function HomePage() {
                 <span className="px-3 py-1 bg-surface-container-high rounded-sm text-[0.7rem] font-bold text-on-surface uppercase tracking-wider">Attached Bathrooms</span>
               </div>
             </div>
-            {/* Room Card 2 */}
+            {/* Flat Card 2 */}
             <div className="group flex-none w-[85%] md:w-auto snap-center">
               <div className="relative aspect-video md:aspect-video rounded-xl overflow-hidden mb-6">
-                <img alt="modern double sharing room" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhtCEObK89--F-8-PAsLA68Dp2RDlXtjmclUrJ1rwDP1mUgxPhdDPWFnQA3O4Go-PPpkVgHSyl4uxV6TM1mWqQrbsp-CEmp3Y0V0r2wNI70QWEbu6NxH2V2pHaRJ-bbMhhjAkmO-kpmwiZFaZVNZzBZHXO54bT1fgKt0sQ9dyXkOEROb-BoJfj0i5DHKaSs5P6cQxW-mw-Ucdh8BLvPmUyIz9m-Sv9wIoo9zKL9tzxiExE436RYTUjj35m95tWl163WI4xncUYreQ" />
+                <img alt="modern double sharing flat" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhtCEObK89--F-8-PAsLA68Dp2RDlXtjmclUrJ1rwDP1mUgxPhdDPWFnQA3O4Go-PPpkVgHSyl4uxV6TM1mWqQrbsp-CEmp3Y0V0r2wNI70QWEbu6NxH2V2pHaRJ-bbMhhjAkmO-kpmwiZFaZVNZzBZHXO54bT1fgKt0sQ9dyXkOEROb-BoJfj0i5DHKaSs5P6cQxW-mw-Ucdh8BLvPmUyIz9m-Sv9wIoo9zKL9tzxiExE436RYTUjj35m95tWl163WI4xncUYreQ" />
                 <div className="absolute top-4 right-4 bg-surface-container-lowest px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">Two Sharing</div>
               </div>
               <h3 className="text-xl font-bold text-tertiary mb-2">Two Sharing</h3>
@@ -297,10 +297,10 @@ export default function HomePage() {
                 <span className="px-3 py-1 bg-surface-container-high rounded-sm text-[0.7rem] font-bold text-on-surface uppercase tracking-wider">Individual Lockers</span>
               </div>
             </div>
-            {/* Room Card 3 */}
+            {/* Flat Card 3 */}
             <div className="group flex-none w-[85%] md:w-auto snap-center">
               <div className="relative aspect-video md:aspect-video rounded-xl overflow-hidden mb-6">
-                <img alt="ultra-premium suite room" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEYsCb0LUN4cZesCNnYdDJvDtC-1jFiD-hC9rXBQl6aHuXZDIRV1g1iIZXEbLJTDNWYP7YeDYbjj3zXeAJkpXuXu_iqQcIbGhTE5a0IjOEsQ0YDubU-dDdZOtIXxALxrIIb0mvro1TxdLDw69lX-dXP5s44V1DR7RViDqiMHAkYQZSzsLOrrsQvQnx3TUwn3EaBdmaDON_fbZJ34tzlR1jyE-M36IQqSW5mk2r4xY57iKf7QFeUxyKYPIhCtmk4zPxXxfNVtLVT_c" />
+                <img alt="ultra-premium suite flat" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEYsCb0LUN4cZesCNnYdDJvDtC-1jFiD-hC9rXBQl6aHuXZDIRV1g1iIZXEbLJTDNWYP7YeDYbjj3zXeAJkpXuXu_iqQcIbGhTE5a0IjOEsQ0YDubU-dDdZOtIXxALxrIIb0mvro1TxdLDw69lX-dXP5s44V1DR7RViDqiMHAkYQZSzsLOrrsQvQnx3TUwn3EaBdmaDON_fbZJ34tzlR1jyE-M36IQqSW5mk2r4xY57iKf7QFeUxyKYPIhCtmk4zPxXxfNVtLVT_c" />
                 <div className="absolute top-4 right-4 bg-surface-container-lowest px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">Quad Sharing</div>
               </div>
               <h3 className="text-xl font-bold text-tertiary mb-2">Quad Sharing</h3>

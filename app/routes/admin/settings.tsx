@@ -91,7 +91,7 @@ export default function AdminSettings() {
                  <Tags className="w-5 h-5 text-indigo-600" />
                </div>
                <div>
-                 <p className="font-bold text-slate-900 text-sm">Room Configurations</p>
+                 <p className="font-bold text-slate-900 text-sm">Flat Configurations</p>
                  <p className="text-xs text-slate-500 mt-0.5">Manage AC/Non-AC types and sharing categories</p>
                </div>
              </div>

@@ -147,13 +147,13 @@ export default function ManageBuildingLayout() {
                 sharingTypeId: selectedSharingType || undefined,
             });
 
-            toast.success("Room and seats added!");
+            toast.success("Flat and beds added!");
             setOpenRoom(false);
             setNewRoomNum("");
             setSelectedRoomType("");
             setSelectedSharingType("");
         } catch (e: any) {
-            toast.error(e.message || "Failed to add room");
+            toast.error(e.message || "Failed to add flat");
         }
     };
 
@@ -167,10 +167,10 @@ export default function ManageBuildingLayout() {
                 roomTypeId: selectedRoomType || undefined,
                 sharingTypeId: selectedSharingType || undefined,
             });
-            toast.success("Room updated successfully!");
+            toast.success("Flat updated successfully!");
             setOpenEditRoom(false);
         } catch (e: any) {
-            toast.error(e.message || "Failed to edit room");
+            toast.error(e.message || "Failed to edit flat");
         }
     };
 
@@ -316,10 +316,10 @@ export default function ManageBuildingLayout() {
         if (!roomToDelete) return;
         try {
             await deleteRoomMutation({ roomId: roomToDelete.id });
-            toast.success("Room deleted successfully");
+            toast.success("Flat deleted successfully");
             setRoomToDelete(null);
         } catch (e: any) {
-            toast.error(e.message || "Failed to delete room");
+            toast.error(e.message || "Failed to delete flat");
         }
     };
 
@@ -333,7 +333,7 @@ export default function ManageBuildingLayout() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => navigate("/admin")}
+                        onClick={() => navigate("/admin/buildings")}
                         className="rounded-full shrink-0"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-500" />
@@ -371,7 +371,7 @@ export default function ManageBuildingLayout() {
 
                             <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-4">
                                 <div className="space-y-2">
-                                    <Label>Number of Rooms</Label>
+                                    <Label>Number of Flats</Label>
                                     <Input
                                         type="number"
                                         value={newRoomCount}
@@ -379,7 +379,7 @@ export default function ManageBuildingLayout() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Beds per Room</Label>
+                                    <Label>Beds per Flat</Label>
                                     <Input
                                         type="number"
                                         value={newBedsPerRoom}
@@ -388,7 +388,7 @@ export default function ManageBuildingLayout() {
                                 </div>
                             </div>
                             <p className="text-[10px] text-slate-500 italic">
-                                This will automatically generate rooms and beds for this floor.
+                                This will automatically generate flats and beds for this floor.
                             </p>
                         </div>
                         <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -421,7 +421,7 @@ export default function ManageBuildingLayout() {
                                     variant="secondary"
                                     className="bg-emerald-50 text-emerald-700 border-emerald-100"
                                 >
-                                    {floor.rooms?.length || 0} Rooms
+                                    {floor.rooms?.length || 0} Flats
                                 </Badge>
                                 <Button
                                     variant="ghost"
@@ -442,12 +442,12 @@ export default function ManageBuildingLayout() {
                                         setOpenRoom(true);
                                     }}
                                 >
-                                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Room
+                                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Flat
                                 </Button>
                             )}
                         </div>
 
-                        {/* Rooms Grid */}
+                        {/* Flats Grid */}
                         <div className="p-3 sm:p-6">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 {floor.rooms?.map((room: any) => {
@@ -471,7 +471,7 @@ export default function ManageBuildingLayout() {
                                                             <Hash className="w-3.5 h-3.5 text-blue-500" />
                                                         </div>
                                                         <CardTitle className="text-base font-bold">
-                                                            Room {room.room_number}
+                                                            Flat {room.room_number}
                                                         </CardTitle>
                                                     </div>
                                                     <div className="flex items-center gap-1">
@@ -638,7 +638,7 @@ export default function ManageBuildingLayout() {
 
                                 {(!floor.rooms || floor.rooms.length === 0) && (
                                     <div className="col-span-full py-10 text-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 text-sm">
-                                        No rooms here. Click "Add Room" to begin setup.
+                                        No flats here. Click "Add Flat" to begin setup.
                                     </div>
                                 )}
                             </div>
@@ -647,15 +647,15 @@ export default function ManageBuildingLayout() {
                 ))}
             </div>
 
-            {/* Add Room Modal */}
+            {/* Add Flat Modal */}
             <Dialog open={openRoom} onOpenChange={setOpenRoom}>
                 <DialogContent className="max-w-[95vw] sm:max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Add Room to Floor</DialogTitle>
+                        <DialogTitle>Add Flat to Floor</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4 text-left">
                         <div className="space-y-2">
-                            <Label>Room Number / Name</Label>
+                            <Label>Flat Number / Name</Label>
                             <Input
                                 value={newRoomNum}
                                 onChange={(e) => setNewRoomNum(e.target.value)}
@@ -664,7 +664,7 @@ export default function ManageBuildingLayout() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div className="space-y-2">
-                                <Label>Room Type</Label>
+                                <Label>Flat Type</Label>
                                 <Select value={selectedRoomType} onValueChange={setSelectedRoomType}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select type..." />
@@ -703,7 +703,7 @@ export default function ManageBuildingLayout() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>Beds per Room</Label>
+                            <Label>Beds per Flat</Label>
                             <Input
                                 type="number"
                                 value={seatsInRoom}
@@ -722,21 +722,21 @@ export default function ManageBuildingLayout() {
                             Cancel
                         </Button>
                         <Button onClick={onAddRoom} className="w-full sm:w-auto font-semibold">
-                            Create Room
+                            Create Flat
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Edit Room Modal */}
+            {/* Edit Flat Modal */}
             <Dialog open={openEditRoom} onOpenChange={setOpenEditRoom}>
                 <DialogContent className="max-w-[95vw] sm:max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Edit Room Details</DialogTitle>
+                        <DialogTitle>Edit Flat Details</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4 text-left">
                         <div className="space-y-2">
-                            <Label>Room Number / Name</Label>
+                            <Label>Flat Number / Name</Label>
                             <Input
                                 value={newRoomNum}
                                 onChange={(e) => setNewRoomNum(e.target.value)}
@@ -745,7 +745,7 @@ export default function ManageBuildingLayout() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div className="space-y-2">
-                                <Label>Room Type</Label>
+                                <Label>Flat Type</Label>
                                 <Select value={selectedRoomType} onValueChange={setSelectedRoomType}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Non-AC, AC..." />
@@ -872,22 +872,22 @@ export default function ManageBuildingLayout() {
                 </DialogContent>
             </Dialog>
 
-            {/* Room Deletion Warning Modal */}
+            {/* Flat Deletion Warning Modal */}
             <AlertDialog open={!!roomToDelete} onOpenChange={(open) => !open && setRoomToDelete(null)}>
                 <AlertDialogContent className="max-w-[95vw] sm:max-w-md">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2 text-red-600">
                             <AlertCircle className="w-5 h-5" />
-                            Strong Warning: Room Deletion
+                            Strong Warning: Flat Deletion
                         </AlertDialogTitle>
                         <AlertDialogDescription className="space-y-4 pt-2">
                             <p className="font-semibold text-slate-900">
                                 Are you sure you want to delete{" "}
-                                <span className="text-red-600">Room {roomToDelete?.room_number}</span>?
+                                <span className="text-red-600">Flat {roomToDelete?.room_number}</span>?
                             </p>
                             <div className="bg-red-50 border border-red-100 p-4 rounded-xl space-y-3 font-medium">
                                 <p className="text-sm">
-                                    Deleting this room will permanently delete all associated beds. If any beds are
+                                    Deleting this flat will permanently delete all associated beds. If any beds are
                                     occupied, the residents will NOT be deleted. Their bed assignment will be removed
                                     and their status will be updated.
                                 </p>
