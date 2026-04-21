@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, UserPlus, Building2 } from 'lucide-react';
-import { useAdminBuildingsBasic } from '~/queries/buildings.query';
+import { useAdminBuildingsBasic, useBuildingById } from '~/queries/buildings.query';
+import { useManagementContext } from '~/hooks/use-management-context';
 import { useFloors, useRooms, useAvailableSeats } from '~/queries/layout.query';
 import { useRoomTypes, useSharingTypes } from '~/queries/room-types.query';
 import { useAddResident } from '~/queries/residents.query';
@@ -59,6 +60,7 @@ type ResidentFormValues = z.infer<typeof residentSchema>;
 export default function AddResidentPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { isImpersonating, currentBuildingId } = useManagementContext();
 
   const form = useForm<ResidentFormValues>({
     resolver: zodResolver(residentSchema),
@@ -86,10 +88,10 @@ export default function AddResidentPage() {
   const roomId = useWatch({ control: form.control, name: 'room_id' });
   const stayType = useWatch({ control: form.control, name: 'stay_type' });
 
-  const { data: buildings = [] } = useAdminBuildingsBasic({ 
-    variables: { adminId: user?.id || '' }, 
-    enabled: !!user?.id 
-  });
+  // If impersonating, fetch only the current building, else fetch all admin buildings
+  const { data: buildings = [] } = isImpersonating && currentBuildingId
+    ? { data: [useBuildingById({ variables: { buildingId: currentBuildingId }, enabled: !!currentBuildingId }).data].filter(Boolean) }
+    : useAdminBuildingsBasic({ variables: { adminId: user?.id || '' }, enabled: !!user?.id });
   const { data: floors = [] } = useFloors({ 
     variables: { buildingId: buildingId || '' }, 
     enabled: !!buildingId 
