@@ -82,7 +82,7 @@ export default function ResidentsPage() {
 
   const exportCSV = () => {
     const data = getExportData();
-    const headers = ["Name", "Age", "Gender", "Phone", "Email", "Status", "Building", "Room", "Room Type", "Sharing", "Bed", "Stay Type", "Rent", "Join Date"];
+    const headers = ["Name", "Age", "Gender", "Phone", "Email", "Status", "Building", "Flat", "Flat Type", "Sharing", "Bed", "Stay Type", "Rent", "Join Date"];
     const rows = data.map(r => [
       r.name, r.age || '-', r.gender || '-', r.phone, r.email || '-', r.status, r.building?.name || '-', 
       r.room?.room_number || '-', r.room?.room_types?.name || '-', 
@@ -124,7 +124,7 @@ export default function ResidentsPage() {
 
      autoTable(doc, {
        startY: 35,
-       head: [['Name', 'A/G', 'Phone', 'Status', 'Building', 'Room/Bed', 'Type', 'Sharing', 'Rent', 'Join Date']],
+       head: [['Name', 'A/G', 'Phone', 'Status', 'Building', 'Flat/Bed', 'Type', 'Sharing', 'Rent', 'Join Date']],
        body: tableData,
        theme: 'grid',
        headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255] },
@@ -223,7 +223,7 @@ export default function ResidentsPage() {
                 <th className="px-6 py-4">Resident</th>
                 <th className="px-6 py-4">Age / Sex</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Building / Room</th>
+                <th className="px-6 py-4">Building / Flat</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -258,7 +258,7 @@ export default function ResidentsPage() {
                           <Building2 className="w-3 h-3 text-slate-400"/> {r.building?.name || 'N/A'}
                        </span>
                        <div className="flex items-center gap-1.5 flex-wrap">
-                         <span className="text-xs text-slate-500 font-medium whitespace-nowrap">R: {r.room?.room_number || '-'} / B: {r.seat?.seat_number || '-'}</span>
+                         <span className="text-xs text-slate-500 font-medium whitespace-nowrap">F: {r.room?.room_number || '-'} / B: {r.seat?.seat_number || '-'}</span>
                          {r.room?.room_types?.name && (
                            <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tight", r.room.room_types.name.toLowerCase().includes('ac') ? 'bg-cyan-50 text-cyan-700 border border-cyan-100' : 'bg-orange-50 text-orange-700 border border-orange-100')}>
                              {r.room.room_types.name}

@@ -130,7 +130,7 @@ export default function RegisterPage() {
             <span className="text-xl md:text-2xl font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG Services</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">Register for a PG Account</h1>
-          <p className="text-slate-500 mt-2">Fill in your details to apply for a room</p>
+          <p className="text-slate-500 mt-2">Fill in your details to apply for a flat</p>
         </div>
 
         {/* Steps */}
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Room Type (Optional)</Label>
+                    <Label>Flat Type (Optional)</Label>
                     <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
                       <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
                       <SelectContent>
@@ -230,15 +230,15 @@ export default function RegisterPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Room *</Label>
+                    <Label>Flat *</Label>
                     <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id || rooms.length === 0}>
                       <SelectTrigger>
                         <SelectValue placeholder={
                           !form.floor_id 
                             ? "Select Floor First" 
                             : rooms.length === 0 
-                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} rooms available`
-                              : "Select Room"
+                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} flats available`
+                              : "Select Flat"
                         } />
                       </SelectTrigger>
                       <SelectContent>
@@ -247,14 +247,14 @@ export default function RegisterPage() {
                     </Select>
                     {form.floor_id && rooms.length === 0 && (
                       <p className="text-[10px] text-red-500 font-medium">
-                        No rooms available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} and {sharingTypes.find(st => st.id === form.sharing_type_id)?.name || 'any'} configuration on this floor.
+                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} and {sharingTypes.find(st => st.id === form.sharing_type_id)?.name || 'any'} configuration on this floor.
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label>Seat/Bed *</Label>
                     <Select value={form.seat_id} onValueChange={v => update('seat_id', v)} disabled={!form.room_id || seats.length === 0}>
-                      <SelectTrigger><SelectValue placeholder={!form.room_id ? "Select Room First" : seats.length ? "Select Bed" : "No beds available"} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={!form.room_id ? "Select Flat First" : seats.length ? "Select Bed" : "No beds available"} /></SelectTrigger>
                       <SelectContent>
                         {seats.map(s => <SelectItem key={s.id} value={s.id}>{s.seat_number}</SelectItem>)}
                       </SelectContent>

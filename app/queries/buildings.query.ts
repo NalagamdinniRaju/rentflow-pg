@@ -156,11 +156,11 @@ interface AddBuildingVariables {
   city_id: string;
   pincode?: string;
   admin_id: string | null;
-  floors: number;
-  seats_per_floor: number;
+  floors?: number;
+  seats_per_floor?: number;
 }
 
-/** Create a new building with auto-generated layout (floors, single room per floor, seats) */
+/** Create a new building with auto-generated layout (floors, single flat per floor, seats) */
 export const useAddBuilding = createMutation<void, AddBuildingVariables>({
   mutationFn: async (variables) => {
     // 1. Create address
@@ -273,15 +273,46 @@ export const useBuildingLayout = createQuery<any[], { buildingId: string }>({
 interface AddFloorVariables {
   buildingId: string;
   floorNumber: string;
+  roomCount?: number;
+  bedsPerRoom?: number;
 }
 
 export const useAddFloor = createMutation<void, AddFloorVariables>({
   mutationFn: async (variables) => {
-    const response = await supabase.from('floors').insert({
+    // 1. Create floor
+    const floorResp = await supabase.from('floors').insert({
       building_id: variables.buildingId,
       floor_number: variables.floorNumber,
-    });
-    unwrapSupabaseResponse(response);
+    }).select('id').single();
+    const floor = unwrapSupabaseResponse(floorResp);
+
+    // 2. Batch create rooms if requested
+    if (variables.roomCount && variables.roomCount > 0) {
+      const roomCount = variables.roomCount;
+      const bedsPerRoom = variables.bedsPerRoom || 0;
+      
+      for (let i = 1; i <= roomCount; i++) {
+        // Room numbering logic (e.g., Floor 1 -> 101, 102...)
+        let roomNum = `${variables.floorNumber.replace(/\D/g, '')}${i.toString().padStart(2, '0')}`;
+        if (!roomNum || roomNum.length < 2) roomNum = i.toString();
+
+        const roomResp = await supabase.from('rooms').insert({
+          floor_id: floor.id,
+          room_number: roomNum,
+          total_seats: bedsPerRoom,
+        }).select('id').single();
+        const room = unwrapSupabaseResponse(roomResp);
+
+        if (bedsPerRoom > 0) {
+          const seats = Array.from({ length: bedsPerRoom }).map((_, sIdx) => ({
+            room_id: room.id,
+            seat_number: `B${sIdx + 1}`,
+            status: 'AVAILABLE'
+          }));
+          await supabase.from('seats').insert(seats);
+        }
+      }
+    }
   },
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: buildingKeys.all });
@@ -305,7 +336,7 @@ export const useAddRoom = createMutation<void, AddRoomVariables>({
       if (st) capacity = st.capacity;
     }
 
-    // 2. Create Room
+    // 2. Create Flat
     const roomResp = await supabase.from('rooms').insert({
       floor_id: variables.floorId,
       room_number: variables.roomNumber,
@@ -333,6 +364,7 @@ export const useAddRoom = createMutation<void, AddRoomVariables>({
 interface UpdateRoomVariables {
   roomId: string;
   roomNumber?: string;
+  totalSeats?: number;
   roomTypeId?: string;
   sharingTypeId?: string;
 }
@@ -348,18 +380,50 @@ export const useUpdateRoom = createMutation<void, UpdateRoomVariables>({
       .eq('id', roomId)
       .single();
     
-    if (roomErr || !room) throw new Error("Room not found");
+    if (roomErr || !room) throw new Error("Flat not found");
 
     const updateData: any = {};
     if (roomNumber) {
       // Check for duplicate room number on the same floor
       const { data: dup } = await supabase.from('rooms').select('id').eq('floor_id', room.floor_id).eq('room_number', roomNumber).neq('id', roomId).maybeSingle();
-      if (dup) throw new Error(`Room number ${roomNumber} already exists on this floor`);
+      if (dup) throw new Error(`Flat number ${roomNumber} already exists on this floor`);
       updateData.room_number = roomNumber;
     }
     
     if (roomTypeId !== undefined) updateData.room_type_id = roomTypeId === 'none' ? null : roomTypeId;
     
+    if (variables.totalSeats !== undefined && variables.totalSeats !== room.total_seats) {
+      const newCap = variables.totalSeats;
+      const currentSeats = room.seats || [];
+      const currentCount = currentSeats.length;
+
+      if (newCap > currentCount) {
+        const toAdd = newCap - currentCount;
+        const newSeats = Array.from({ length: toAdd }).map((_, i) => ({
+          room_id: roomId,
+          seat_number: `B${currentCount + i + 1}`,
+          status: 'AVAILABLE'
+        }));
+        await supabase.from('seats').insert(newSeats);
+      } else if (newCap < currentCount) {
+        const toRemove = currentSeats
+          .sort((a: any, b: any) => {
+            const aNum = parseInt(a.seat_number.replace(/\D/g, '')) || 0;
+            const bNum = parseInt(b.seat_number.replace(/\D/g, '')) || 0;
+            return bNum - aNum;
+          })
+          .slice(0, currentCount - newCap);
+
+        const occupied = toRemove.find((s: any) => s.status === 'OCCUPIED');
+        if (occupied) {
+          throw new Error(`Cannot reduce capacity: Bed ${occupied.seat_number} is occupied`);
+        }
+
+        await supabase.from('seats').delete().in('id', toRemove.map((s: any) => s.id));
+      }
+      updateData.total_seats = newCap;
+    }
+
     if (sharingTypeId !== undefined && sharingTypeId !== room.sharing_type_id) {
       updateData.sharing_type_id = sharingTypeId === 'none' ? null : sharingTypeId;
       
@@ -401,6 +465,67 @@ export const useUpdateRoom = createMutation<void, UpdateRoomVariables>({
     
     const response = await supabase.from('rooms').update(updateData).eq('id', roomId);
     unwrapSupabaseResponse(response);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+  },
+});
+
+export const useDeleteRoom = createMutation<void, { roomId: string }>({
+  mutationFn: async ({ roomId }) => {
+    // 1. Fetch all seats in this room
+    const { data: seats } = await supabase.from('seats').select('id, status').eq('room_id', roomId);
+    if (!seats) return;
+
+    const seatIds = seats.map(s => s.id);
+
+    // 2. Unassign residents from these seats and set status to PENDING
+    // We update residents where seat_id is in our list
+    const { error: resErr } = await supabase
+      .from('residents')
+      .update({ 
+        seat_id: null, 
+        room_id: null, 
+        floor_id: null,
+        status: 'PENDING' 
+      })
+      .in('seat_id', seatIds);
+    
+    if (resErr) {
+      console.error("Error unassigning residents:", resErr);
+      throw new Error("Failed to unassign residents before flat deletion");
+    }
+
+    // 3. Delete all seats
+    const { error: seatDelErr } = await supabase.from('seats').delete().in('room_id', [roomId]);
+    if (seatDelErr) throw seatDelErr;
+
+    // 4. Delete the room
+    const { error: roomDelErr } = await supabase.from('rooms').delete().eq('id', roomId);
+    if (roomDelErr) throw roomDelErr;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+  },
+});
+
+export const useBulkDeleteSeats = createMutation<void, { roomId: string, seatIds: string[] }>({
+  mutationFn: async ({ roomId, seatIds }) => {
+    // 1. Double check occupancy for safety
+    const { data: seats } = await supabase.from('seats').select('status, seat_number').in('id', seatIds);
+    const occupied = seats?.find(s => s.status === 'OCCUPIED');
+    if (occupied) {
+      throw new Error(`Cannot delete: Bed ${occupied.seat_number} is occupied`);
+    }
+
+    // 2. Delete seats
+    const { error: delErr } = await supabase.from('seats').delete().in('id', seatIds);
+    if (delErr) throw delErr;
+
+    // 3. Update room total_seats count
+    const { data: remainingSeats } = await supabase.from('seats').select('id').eq('room_id', roomId);
+    const { error: updErr } = await supabase.from('rooms').update({ total_seats: remainingSeats?.length || 0 }).eq('id', roomId);
+    if (updErr) throw updErr;
   },
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: buildingKeys.all });
@@ -492,7 +617,7 @@ export const useAddSeat = createMutation<void, AddSeatVariables>({
       .eq('room_id', variables.roomId)
       .eq('seat_number', variables.seatNumber)
       .maybeSingle();
-    if (dup) throw new Error(`Seat ${variables.seatNumber} already exists in this room`);
+    if (dup) throw new Error(`Seat ${variables.seatNumber} already exists in this flat`);
 
     const response = await supabase.from('seats').insert({
       room_id: variables.roomId,

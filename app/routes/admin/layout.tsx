@@ -55,7 +55,7 @@ export default function AdminLayout() {
     { icon: Bell, label: 'Reminders', path: '/admin/reminders' },
     { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
     { icon: IndianRupee, label: 'UPI Config', path: '/admin/upi-settings' },
-    { icon: Tags, label: 'Room Types', path: '/admin/room-types' },
+    { icon: Tags, label: 'Flat Types', path: '/admin/room-types' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
 
@@ -74,22 +74,26 @@ export default function AdminLayout() {
               <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500 text-slate-900 rounded-full text-[9px] font-black uppercase tracking-tighter shrink-0">
                 <Eye className="w-3 h-3" /> <span className="hidden xs:inline">Ghost</span>
               </div>
-              <div className="h-4 w-[1px] bg-white/20 hidden sm:block" />
-              <div className="flex items-center gap-2">
-                <span className="text-white/60 text-[10px] font-bold hidden lg:inline whitespace-nowrap">Managing:</span>
-                <Select value={selectedBuildingId || 'none'} onValueChange={setSelectedBuildingId}>
-                   <SelectTrigger className="h-7 bg-white/10 border-none text-white w-[130px] sm:w-[180px] text-[10px] sm:text-xs font-bold ring-0 focus:ring-0">
-                      <SelectValue placeholder="Select Building" />
-                   </SelectTrigger>
-                   <SelectContent className="bg-slate-800 text-white border-slate-700">
-                      {allBuildings.map(b => (
-                        <SelectItem key={b.id} value={b.id} className="hover:bg-slate-700 focus:bg-slate-700 text-xs">
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                   </SelectContent>
-                </Select>
-              </div>
+              {!(location.pathname.includes('/admin/buildings/') && location.pathname.includes('/layout')) && (
+                <>
+                  <div className="h-4 w-[1px] bg-white/20 hidden sm:block" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/60 text-[10px] font-bold hidden lg:inline whitespace-nowrap">Managing:</span>
+                    <Select value={selectedBuildingId || 'none'} onValueChange={setSelectedBuildingId}>
+                       <SelectTrigger className="h-7 bg-white/10 border-none text-white w-[130px] sm:w-[180px] text-[10px] sm:text-xs font-bold ring-0 focus:ring-0">
+                          <SelectValue placeholder="Select Building" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-slate-800 text-white border-slate-700">
+                          {allBuildings.map(b => (
+                            <SelectItem key={b.id} value={b.id} className="hover:bg-slate-700 focus:bg-slate-700 text-xs">
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                       </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
            </div>
            <Button 
             variant="ghost" 

@@ -194,8 +194,8 @@ export default function ResidentProfilePage() {
                 <span className="text-sm font-medium text-slate-900 truncate">{building?.name}</span>
               </div>
               <div className="flex flex-col gap-1 px-1">
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Room No.</span>
-                <span className="text-sm font-medium text-slate-900">Room {resident?.room?.room_number}</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Flat No.</span>
+                <span className="text-sm font-medium text-slate-900">Flat {resident?.room?.room_number}</span>
               </div>
               <div className="flex flex-col gap-1 px-1">
                 <span className="text-[10px] text-slate-400 uppercase tracking-widest">Floor</span>
@@ -206,7 +206,7 @@ export default function ResidentProfilePage() {
                 <span className="text-sm font-medium text-slate-900">Bed {resident?.seat?.seat_number}</span>
               </div>
               <div className="flex flex-col gap-1 px-1">
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Room Type</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Flat Type</span>
                 <span className="text-sm font-medium text-slate-900">{resident?.room?.room_types?.name || 'Standard'}</span>
               </div>
               <div className="flex flex-col gap-1 px-1">

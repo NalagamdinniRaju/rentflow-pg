@@ -142,7 +142,7 @@ export default function BuildingsPage() {
             <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             Your Properties
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">Manage buildings, rooms and rental preferences</p>
+          <p className="text-slate-500 mt-1 text-sm">Manage buildings, flats and rental preferences</p>
         </div>
         {!isImpersonating && (
           <Dialog open={openAdd} onOpenChange={setOpenAdd}>

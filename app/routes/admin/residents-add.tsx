@@ -36,7 +36,7 @@ const residentSchema = z.object({
   floor_id: z.string().min(1, "Floor is required"),
   room_type_id: z.string().optional(),
   sharing_type_id: z.string().optional(),
-  room_id: z.string().min(1, "Room is required"),
+  room_id: z.string().min(1, "Flat is required"),
   seat_id: z.string().min(1, "Seat/Bed is required"),
 }).superRefine((data, ctx) => {
   if (data.stay_type === 'MONTHLY' && (!data.monthly_rent || data.monthly_rent <= 0)) {
@@ -202,7 +202,7 @@ export default function AddResidentPage() {
             {/* Section 2 */}
             <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2">
-                 <Building2 className="w-5 h-5 text-slate-500" /> 2. Room Allocation
+                 <Building2 className="w-5 h-5 text-slate-500" /> 2. Flat Allocation
                </h3>
                <div className="grid sm:grid-cols-2 gap-6">
                   <FormField
@@ -263,7 +263,7 @@ export default function AddResidentPage() {
                     name="room_type_id"
                     render={({ field }: { field: any }) => (
                       <FormItem>
-                        <FormLabel>Room Type (Filter)</FormLabel>
+                        <FormLabel>Flat Type (Filter)</FormLabel>
                         <Select 
                           value={field.value} 
                           onValueChange={(val) => {
@@ -315,7 +315,7 @@ export default function AddResidentPage() {
                     name="room_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Room *</FormLabel>
+                        <FormLabel>Flat *</FormLabel>
                         <Select 
                           value={field.value} 
                           onValueChange={(val) => {
@@ -325,7 +325,7 @@ export default function AddResidentPage() {
                           disabled={!floorId}
                         >
                           <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Select Room" /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder="Select Flat" /></SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {rooms.map(r => <SelectItem key={r.id} value={r.id}>{r.room_number}</SelectItem>)}

@@ -33,8 +33,6 @@ const buildingSchema = z.object({
   city_id: z.string().min(1, "City is required"),
   line_one: z.string().min(5, "Address must be at least 5 characters"),
   pincode: z.string().optional(),
-  floors: z.coerce.number().min(1, "Must have at least 1 floor"),
-  seats_per_floor: z.coerce.number().min(1, "Must have at least 1 seat per floor")
 });
 
 type BuildingFormValues = z.infer<typeof buildingSchema>;
@@ -71,8 +69,6 @@ export default function BuildingsPage() {
       city_id: '',
       line_one: '',
       pincode: '',
-      floors: 1,
-      seats_per_floor: 10
     }
   });
 
@@ -95,11 +91,9 @@ export default function BuildingsPage() {
         city_id: values.city_id,
         line_one: values.line_one,
         pincode: values.pincode,
-        floors: values.floors,
-        seats_per_floor: values.seats_per_floor,
       });
 
-      toast.success("Building created and layout generated!");
+      toast.success("Building created successfully!");
       setOpen(false);
       form.reset();
     } catch (err: any) {
@@ -205,34 +199,7 @@ export default function BuildingsPage() {
                         )}
                       />
 
-                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        <FormField
-                          control={form.control}
-                          name="floors"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Total Floors *</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="4" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="seats_per_floor"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Seats / Floor *</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="10" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+
                     </div>
 
                     <div className="space-y-4">
@@ -287,8 +254,7 @@ export default function BuildingsPage() {
                     </div>
 
                     <div className="col-span-1 md:col-span-2 mt-4">
-                      <Button type="submit" className="w-full" disabled={form.formState.isSubmitting} size="lg">Auto-Generate Floors & Rooms</Button>
-                      <p className="text-xs text-center text-slate-500 mt-2">This will automatically structure the building layout.</p>
+                      <Button type="submit" className="w-full" disabled={form.formState.isSubmitting} size="lg">Submit</Button>
                     </div>
                  </form>
                </Form>
