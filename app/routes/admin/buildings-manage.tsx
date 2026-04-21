@@ -229,18 +229,18 @@ export default function ManageBuildingLayout() {
     };
 
     const toggleSelectAll = (room: any) => {
-        const selectableSeatIds = room.seats?.filter((s: any) => s.status === "AVAILABLE").map((s: any) => s.id) || [];
+        const selectableSeatIds: string[] = room.seats?.filter((s: any) => s.status === "AVAILABLE").map((s: any) => s.id) || [];
 
         setSelectedSeats((prev) => {
             const currentSelection = prev[room.id] || new Set();
             const allSelected =
-                selectableSeatIds.length > 0 && selectableSeatIds.every((id) => currentSelection.has(id));
+                selectableSeatIds.length > 0 && selectableSeatIds.every((id: string) => currentSelection.has(id));
 
             const newSelection = new Set(currentSelection);
             if (allSelected) {
-                selectableSeatIds.forEach((id) => newSelection.delete(id));
+                selectableSeatIds.forEach((id: string) => newSelection.delete(id));
             } else {
-                selectableSeatIds.forEach((id) => newSelection.add(id));
+                selectableSeatIds.forEach((id: string) => newSelection.add(id));
             }
             return { ...prev, [room.id]: newSelection };
         });
@@ -323,7 +323,9 @@ export default function ManageBuildingLayout() {
         }
     };
 
+
     if (loading) return <div className="p-20 text-center text-slate-400">Loading Layout...</div>;
+    if (!building) return <div className="p-20 text-center text-red-400">Building not found or failed to load.</div>;
 
     return (
         <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto">
@@ -341,10 +343,10 @@ export default function ManageBuildingLayout() {
                     <div className="min-w-0">
                         <h1 className="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
                             <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0" />
-                            <span className="truncate">{building?.name}</span>
+                            <span className="truncate">{building.name || 'Unnamed Building'}</span>
                         </h1>
                         <p className="text-slate-500 text-xs sm:text-sm truncate">
-                            {building?.address?.line_one}, {building?.address?.city?.name}
+                            {building.address?.line_one || 'No address'}, {building.address?.city?.name || 'No city'}
                         </p>
                     </div>
                 </div>
