@@ -33,6 +33,9 @@ const buildingSchema = z.object({
   city_id: z.string().min(1, "City is required"),
   line_one: z.string().min(5, "Address must be at least 5 characters"),
   pincode: z.string().optional(),
+  monthly_rent: z.string().optional(),
+  daily_rent: z.string().optional(),
+  deposit_amount: z.string().optional(),
 });
 
 type BuildingFormValues = z.infer<typeof buildingSchema>;
@@ -69,6 +72,9 @@ export default function BuildingsPage() {
       city_id: '',
       line_one: '',
       pincode: '',
+      monthly_rent: '',
+      daily_rent: '',
+      deposit_amount: '',
     }
   });
 
@@ -79,7 +85,10 @@ export default function BuildingsPage() {
       status: 'ACTIVE',
       line_one: '',
       city_id: '',
-      pincode: ''
+      pincode: '',
+      monthly_rent: '',
+      daily_rent: '',
+      deposit_amount: '',
     }
   });
 
@@ -91,7 +100,10 @@ export default function BuildingsPage() {
         city_id: values.city_id,
         line_one: values.line_one,
         pincode: values.pincode,
-      });
+        monthly_rent: values.monthly_rent ? Number(values.monthly_rent) : undefined,
+        daily_rent: values.daily_rent ? Number(values.daily_rent) : undefined,
+        deposit_amount: values.deposit_amount ? Number(values.deposit_amount) : undefined,
+      } as any); // Ignoring type since we will update the query next
 
       toast.success("Building created successfully!");
       setOpen(false);
@@ -110,7 +122,10 @@ export default function BuildingsPage() {
       status: building.status || 'ACTIVE',
       line_one: building.address?.line_one || '',
       city_id: building.address?.city_id || '',
-      pincode: building.address?.pincode || ''
+      pincode: building.address?.pincode || '',
+      monthly_rent: building.monthly_rent ? String(building.monthly_rent) : '',
+      daily_rent: building.daily_rent ? String(building.daily_rent) : '',
+      deposit_amount: building.deposit_amount ? String(building.deposit_amount) : ''
     });
     setEditOpen(true);
   };
@@ -130,8 +145,11 @@ export default function BuildingsPage() {
         buildingId: selectedBuilding.id,
         name: values.name,
         admin_id: values.admin_id === 'none' ? null : values.admin_id,
-        status: values.status
-      });
+        status: values.status,
+        monthly_rent: values.monthly_rent ? Number(values.monthly_rent) : null,
+        daily_rent: values.daily_rent ? Number(values.daily_rent) : null,
+        deposit_amount: values.deposit_amount ? Number(values.deposit_amount) : null,
+      } as any); // Ignoring type since we will update the query next
 
       toast.success('Building and address updated successfully');
       setEditOpen(false);
@@ -200,6 +218,47 @@ export default function BuildingsPage() {
                       />
 
 
+                        <FormField
+                          control={form.control}
+                          name="monthly_rent"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Default Monthly Rent (₹)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="6000" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="daily_rent"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Default Daily Rent (₹)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="300" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="deposit_amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Default Deposit (₹)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="5000" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                     </div>
 
                     <div className="space-y-4">
@@ -319,6 +378,48 @@ export default function BuildingsPage() {
                           <SelectItem value="INACTIVE">Inactive</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="monthly_rent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Monthly Rent (₹)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="6000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="daily_rent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Daily Rent (₹)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="300" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="deposit_amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Deposit (₹)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="5000" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

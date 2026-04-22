@@ -45,7 +45,7 @@ export default function RegisterPage() {
       building_id: '', floor_id: '', room_type_id: '', sharing_type_id: '', room_id: '', seat_id: '',
       line_one: '', line_two: '', state_id: '', city_id: '', pincode: '',
       password: '', confirm_password: '',
-      age: '', gender: ''
+      age: '', gender: '', stay_type: 'MONTHLY'
     };
     if (typeof window === 'undefined') return defaultForm;
     try {
@@ -92,6 +92,25 @@ export default function RegisterPage() {
   const update = useCallback((field: string, value: string) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
   }, []);
+
+  const selectedBuilding = buildings.find(b => b.id === form.building_id);
+  const selectedRoom = rooms.find(r => r.id === form.room_id);
+
+  const effectiveMonthly = selectedRoom?.custom_monthly_rent != null 
+    ? Number(selectedRoom.custom_monthly_rent) 
+    : (Number(selectedBuilding?.monthly_rent) || 6000);
+
+  const effectiveDaily = selectedRoom?.custom_daily_rent != null 
+    ? Number(selectedRoom.custom_daily_rent) 
+    : (Number(selectedBuilding?.daily_rent) || 300);
+
+  const effectiveDeposit = selectedRoom?.custom_deposit_amount != null
+    ? Number(selectedRoom.custom_deposit_amount)
+    : (Number(selectedBuilding?.deposit_amount) || 5000);
+
+  const rentSource = selectedRoom?.custom_monthly_rent != null || selectedRoom?.custom_daily_rent != null || selectedRoom?.custom_deposit_amount != null
+    ? 'flat-custom'
+    : 'building-default';
 
   const { mutateAsync: registerUser } = useRegisterUser();
 
@@ -261,7 +280,62 @@ export default function RegisterPage() {
                     </Select>
                   </div>
                 </div>
-                <Button type="button" className="w-full" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id || !form.age || !form.gender} onClick={() => setStep(2)}>
+
+                <div className="space-y-2">
+                  <Label>Stay Type *</Label>
+                  <Select value={form.stay_type} onValueChange={v => update('stay_type', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select Stay Type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MONTHLY">Monthly Basis</SelectItem>
+                      <SelectItem value="DAILY">Daily Basis (Short Stay)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Rent Summary Card */}
+                {form.room_id && (
+                  <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mt-2">
+                    <h3 className="text-sm font-bold text-emerald-900 mb-2 border-b border-emerald-200/50 pb-2 flex items-center gap-2">
+                      Rent Summary
+                    </h3>
+                    
+                    <div className="mb-3 mt-1">
+                      {rentSource === 'flat-custom' ? (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            Custom Flat Rent
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-slate-200 text-slate-700 border border-slate-300 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            Building Default
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <p className="text-[10px] text-emerald-600 font-semibold mb-1 uppercase tracking-wider">
+                          {form.stay_type === 'MONTHLY' ? 'Monthly Rent' : 'Daily Rent'}
+                        </p>
+                        <p className="text-lg lg:text-xl font-bold text-slate-800">
+                          ₹{form.stay_type === 'MONTHLY' ? effectiveMonthly : effectiveDaily}
+                          <span className="text-[10px] font-normal text-slate-400 ml-1">/{form.stay_type === 'MONTHLY' ? 'mo' : 'day'}</span>
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <p className="text-[10px] text-emerald-600 font-semibold mb-1 uppercase tracking-wider">Security Deposit</p>
+                        <p className="text-lg lg:text-xl font-bold text-slate-800">₹{effectiveDeposit}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button type="button" className="w-full mt-4" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id || !form.age || !form.gender || !form.stay_type} onClick={() => setStep(2)}>
                   Next Step (Address) →
                 </Button>
               </div>

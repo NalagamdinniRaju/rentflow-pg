@@ -29,11 +29,11 @@ export const useRegistrationCities = createQuery<{id: string; name: string; stat
   }
 });
 
-export const useRegistrationBuildings = createQuery<{id: string; name: string}[]>({
+export const useRegistrationBuildings = createQuery<{id: string; name: string; monthly_rent: number | null; daily_rent: number | null; deposit_amount: number | null}[]>({
   queryKey: registerKeys.buildings,
   fetcher: async () => {
-    const res = await supabase.from('buildings').select('id,name').eq('status', 'ACTIVE').order('name');
-    return unwrapSupabaseResponse(res) as {id: string; name: string}[];
+    const res = await supabase.from('buildings').select('id,name,monthly_rent,daily_rent,deposit_amount').eq('status', 'ACTIVE').order('name');
+    return unwrapSupabaseResponse(res) as {id: string; name: string; monthly_rent: number | null; daily_rent: number | null; deposit_amount: number | null}[];
   }
 });
 
@@ -61,10 +61,10 @@ export const useRegistrationFloors = createQuery<{id: string; floor_number: stri
   }
 });
 
-export const useRegistrationRooms = createQuery<{id: string; room_number: string}[], {floorId: string; roomTypeId?: string; sharingTypeId?: string}>({
+export const useRegistrationRooms = createQuery<{id: string; room_number: string; custom_monthly_rent: number | null; custom_daily_rent: number | null; custom_deposit_amount: number | null}[], {floorId: string; roomTypeId?: string; sharingTypeId?: string}>({
   queryKey: ['register', 'rooms'],
   fetcher: async (variables) => {
-    let query = supabase.from('rooms').select('id, room_number').eq('floor_id', variables.floorId);
+    let query = supabase.from('rooms').select('id, room_number, custom_monthly_rent, custom_daily_rent, custom_deposit_amount').eq('floor_id', variables.floorId);
     if (variables.roomTypeId && variables.roomTypeId !== 'none') {
       query = query.eq('room_type_id', variables.roomTypeId);
     }
@@ -72,7 +72,7 @@ export const useRegistrationRooms = createQuery<{id: string; room_number: string
       query = query.eq('sharing_type_id', variables.sharingTypeId);
     }
     const res = await query;
-    return unwrapSupabaseResponse(res) as {id: string; room_number: string}[];
+    return unwrapSupabaseResponse(res) as {id: string; room_number: string; custom_monthly_rent: number | null; custom_daily_rent: number | null; custom_deposit_amount: number | null}[];
   }
 });
 

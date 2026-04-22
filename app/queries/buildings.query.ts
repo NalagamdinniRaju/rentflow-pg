@@ -156,11 +156,12 @@ interface AddBuildingVariables {
   city_id: string;
   pincode?: string;
   admin_id: string | null;
-  floors?: number;
-  seats_per_floor?: number;
+  monthly_rent?: number;
+  daily_rent?: number;
+  deposit_amount?: number;
 }
 
-/** Create a new building with auto-generated layout (floors, single flat per floor, seats) */
+/** Create a new building with default rent settings */
 export const useAddBuilding = createMutation<void, AddBuildingVariables>({
   mutationFn: async (variables) => {
     // 1. Create address
@@ -171,36 +172,17 @@ export const useAddBuilding = createMutation<void, AddBuildingVariables>({
     }).select('id').single();
     const addr = unwrapSupabaseResponse(addrResp);
 
-    // 2. Create building
+    // 2. Create building with rent defaults
     const bldgResp = await supabase.from('buildings').insert({
       name: variables.name,
       address_id: addr.id,
       admin_id: variables.admin_id,
       status: 'ACTIVE',
+      monthly_rent: variables.monthly_rent || null,
+      daily_rent: variables.daily_rent || null,
+      deposit_amount: variables.deposit_amount || null,
     }).select('id').single();
-    const bldg = unwrapSupabaseResponse(bldgResp);
-
-    // 3. Auto-generate layout
-    for (let i = 1; i <= variables.floors; i++) {
-      const floorResp = await supabase.from('floors').insert({
-        building_id: bldg.id,
-        floor_number: i === 0 ? 'Ground Floor' : `Floor ${i}`,
-      }).select('id').single();
-      const floor = unwrapSupabaseResponse(floorResp);
-
-      const roomResp = await supabase.from('rooms').insert({
-        floor_id: floor.id,
-        room_number: `${i}01`,
-        total_seats: variables.seats_per_floor,
-      }).select('id').single();
-      const room = unwrapSupabaseResponse(roomResp);
-
-      const seats = Array.from({ length: variables.seats_per_floor }).map((_, sIdx) => ({
-        room_id: room.id,
-        seat_number: `B${sIdx + 1}`,
-      }));
-      await supabase.from('seats').insert(seats);
-    }
+    unwrapSupabaseResponse(bldgResp);
   },
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: buildingKeys.all });
@@ -237,6 +219,9 @@ interface UpdateBuildingVariables {
   upi_id?: string | null;
   upi_name?: string | null;
   qr_code_url?: string | null;
+  monthly_rent?: number | null;
+  daily_rent?: number | null;
+  deposit_amount?: number | null;
 }
 
 /** Update building details (name, admin, status) - super admin */
@@ -249,6 +234,9 @@ export const useUpdateBuilding = createMutation<void, UpdateBuildingVariables>({
       upi_id: variables.upi_id,
       upi_name: variables.upi_name,
       qr_code_url: variables.qr_code_url,
+      monthly_rent: variables.monthly_rent,
+      daily_rent: variables.daily_rent,
+      deposit_amount: variables.deposit_amount,
     }).eq('id', variables.buildingId);
     unwrapSupabaseResponse(response);
   },
@@ -262,7 +250,7 @@ export const useBuildingLayout = createQuery<any[], { buildingId: string }>({
   fetcher: async (variables) => {
     const response = await supabase
       .from('floors')
-      .select('*, rooms(*, room_types(*), sharing_types(*), seats(*))')
+      .select('*, rooms(*, room_types(*), sharing_types(*), seats(*), custom_monthly_rent, custom_daily_rent, custom_deposit_amount)')
       .eq('building_id', variables.buildingId)
       .order('floor_number', { ascending: true });
     const data = unwrapSupabaseResponse(response);
@@ -270,11 +258,21 @@ export const useBuildingLayout = createQuery<any[], { buildingId: string }>({
   },
 });
 
+export interface FlatConfig {
+  flatNumber: string;
+  beds: number;
+  useCustomRent: boolean;
+  customMonthlyRent?: number;
+  customDailyRent?: number;
+  customDepositAmount?: number;
+  roomTypeId?: string;
+  sharingTypeId?: string;
+}
+
 interface AddFloorVariables {
   buildingId: string;
   floorNumber: string;
-  roomCount?: number;
-  bedsPerRoom?: number;
+  flats: FlatConfig[];
 }
 
 export const useAddFloor = createMutation<void, AddFloorVariables>({
@@ -286,31 +284,27 @@ export const useAddFloor = createMutation<void, AddFloorVariables>({
     }).select('id').single();
     const floor = unwrapSupabaseResponse(floorResp);
 
-    // 2. Batch create rooms if requested
-    if (variables.roomCount && variables.roomCount > 0) {
-      const roomCount = variables.roomCount;
-      const bedsPerRoom = variables.bedsPerRoom || 0;
-      
-      for (let i = 1; i <= roomCount; i++) {
-        // Room numbering logic (e.g., Floor 1 -> 101, 102...)
-        let roomNum = `${variables.floorNumber.replace(/\D/g, '')}${i.toString().padStart(2, '0')}`;
-        if (!roomNum || roomNum.length < 2) roomNum = i.toString();
+    // 2. Create each flat with its own config
+    for (const flat of variables.flats) {
+      const roomResp = await supabase.from('rooms').insert({
+        floor_id: floor.id,
+        room_number: flat.flatNumber,
+        total_seats: flat.beds,
+        room_type_id: flat.roomTypeId && flat.roomTypeId !== 'none' ? flat.roomTypeId : null,
+        sharing_type_id: flat.sharingTypeId && flat.sharingTypeId !== 'none' ? flat.sharingTypeId : null,
+        custom_monthly_rent: flat.useCustomRent && flat.customMonthlyRent ? flat.customMonthlyRent : null,
+        custom_daily_rent: flat.useCustomRent && flat.customDailyRent ? flat.customDailyRent : null,
+        custom_deposit_amount: flat.useCustomRent && flat.customDepositAmount ? flat.customDepositAmount : null,
+      }).select('id').single();
+      const room = unwrapSupabaseResponse(roomResp);
 
-        const roomResp = await supabase.from('rooms').insert({
-          floor_id: floor.id,
-          room_number: roomNum,
-          total_seats: bedsPerRoom,
-        }).select('id').single();
-        const room = unwrapSupabaseResponse(roomResp);
-
-        if (bedsPerRoom > 0) {
-          const seats = Array.from({ length: bedsPerRoom }).map((_, sIdx) => ({
-            room_id: room.id,
-            seat_number: `B${sIdx + 1}`,
-            status: 'AVAILABLE'
-          }));
-          await supabase.from('seats').insert(seats);
-        }
+      if (flat.beds > 0) {
+        const seats = Array.from({ length: flat.beds }).map((_, sIdx) => ({
+          room_id: room.id,
+          seat_number: `B${sIdx + 1}`,
+          status: 'AVAILABLE'
+        }));
+        await supabase.from('seats').insert(seats);
       }
     }
   },
@@ -325,6 +319,9 @@ interface AddRoomVariables {
   totalSeats: number;
   roomTypeId?: string;
   sharingTypeId?: string;
+  customMonthlyRent?: number;
+  customDailyRent?: number;
+  customDepositAmount?: number;
 }
 
 export const useAddRoom = createMutation<void, AddRoomVariables>({
@@ -343,6 +340,9 @@ export const useAddRoom = createMutation<void, AddRoomVariables>({
       total_seats: capacity,
       room_type_id: variables.roomTypeId === 'none' ? null : variables.roomTypeId,
       sharing_type_id: variables.sharingTypeId === 'none' ? null : variables.sharingTypeId,
+      custom_monthly_rent: variables.customMonthlyRent || null,
+      custom_daily_rent: variables.customDailyRent || null,
+      custom_deposit_amount: variables.customDepositAmount || null,
     }).select('id').single();
     
     const room = unwrapSupabaseResponse(roomResp);
@@ -367,6 +367,9 @@ interface UpdateRoomVariables {
   totalSeats?: number;
   roomTypeId?: string;
   sharingTypeId?: string;
+  customMonthlyRent?: number | null;
+  customDailyRent?: number | null;
+  customDepositAmount?: number | null;
 }
 
 export const useUpdateRoom = createMutation<void, UpdateRoomVariables>({
@@ -461,6 +464,17 @@ export const useUpdateRoom = createMutation<void, UpdateRoomVariables>({
           updateData.total_seats = newCap;
         }
       }
+    }
+
+    // Handle per-flat rent and deposit
+    if (variables.customMonthlyRent !== undefined) {
+      updateData.custom_monthly_rent = variables.customMonthlyRent;
+    }
+    if (variables.customDailyRent !== undefined) {
+      updateData.custom_daily_rent = variables.customDailyRent;
+    }
+    if (variables.customDepositAmount !== undefined) {
+      updateData.custom_deposit_amount = variables.customDepositAmount;
     }
     
     const response = await supabase.from('rooms').update(updateData).eq('id', roomId);

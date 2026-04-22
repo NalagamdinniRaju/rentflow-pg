@@ -56,14 +56,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex flex-col justify-center px-4 py-6 sm:py-12 sm:px-6 lg:px-8 overflow-x-hidden">
+      <div className="w-full max-w-md mx-auto">
         <div className="flex justify-center flex-col items-center">
-          <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
-            <img alt="Lucky Luxury Logo" className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0" src="/logo.png" />
-            <span className="font-extrabold text-[#072b7e] text-xl sm:text-2xl tracking-tight block mt-0.5 text-center">Lucky Luxury PG Services</span>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <img alt="Lucky Luxury Logo" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain shrink-0" src="/logo.png" />
+            <span className="font-extrabold text-[#072b7e] text-lg sm:text-xl md:text-2xl tracking-tight block mt-0.5 text-center leading-tight">Lucky Luxury PG Services</span>
           </div>
-          <h2 className="text-center text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600">
@@ -74,10 +74,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
+        <div className="mt-6 sm:mt-8 w-full">
+          <div className="bg-white py-6 px-4 shadow-xl shadow-slate-200/50 rounded-2xl sm:px-8 border border-slate-100">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
                 <FormField
                   control={form.control}
                   name="email"
@@ -85,7 +85,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email address</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} />
+                        <Input type="email" placeholder="you@example.com" autoComplete="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -100,7 +100,7 @@ export default function LoginPage() {
                       <FormLabel>Password</FormLabel>
                       <div className="relative">
                         <FormControl>
-                           <Input type={showPwd ? 'text' : 'password'} placeholder="••••••••" className="pr-10" {...field} />
+                           <Input type={showPwd ? 'text' : 'password'} placeholder="••••••••" className="pr-10" autoComplete="current-password" {...field} />
                         </FormControl>
                         <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                           {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -111,7 +111,7 @@ export default function LoginPage() {
                   )}
                 />
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-2">
                   <div className="flex items-center">
                     <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded" />
                     <Label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900 font-normal">Remember me</Label>
@@ -122,7 +122,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 shadow-md text-base py-6" disabled={form.formState.isSubmitting}>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 shadow-md text-base py-5 sm:py-6" disabled={form.formState.isSubmitting}>
                   <KeyRound className="w-5 h-5 mr-2" />
                   Sign In
                 </Button>

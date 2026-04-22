@@ -172,3 +172,26 @@ export const useAddRoom = createMutation<void, AddRoomVariables>({
     queryClient.invalidateQueries({ queryKey: layoutKeys.all });
   },
 });
+
+// ─── Room Details (for rent inheritance) ──────────────────────────────────
+
+export interface RoomDetails {
+  id: string;
+  room_number: string;
+  custom_monthly_rent: number | null;
+  custom_daily_rent: number | null;
+  total_seats: number;
+}
+
+export const useRoomDetails = createQuery<RoomDetails | null, { roomId: string }>({
+  queryKey: ['room-details'] as const,
+  fetcher: async (variables) => {
+    if (!variables.roomId) return null;
+    const response = await supabase
+      .from('rooms')
+      .select('id, room_number, custom_monthly_rent, custom_daily_rent, total_seats')
+      .eq('id', variables.roomId)
+      .single();
+    return unwrapSupabaseResponse(response) as RoomDetails;
+  },
+});

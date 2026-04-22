@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
     Building2,
@@ -13,6 +13,7 @@ import {
     CheckSquare,
     Square,
     X,
+    IndianRupee,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -44,6 +45,7 @@ import {
     useAddSeat,
     useDeleteRoom,
     useBulkDeleteSeats,
+    type FlatConfig,
 } from "~/queries/buildings.query";
 import { useRoomTypes, useSharingTypes } from "~/queries/room-types.query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -82,13 +84,19 @@ export default function ManageBuildingLayout() {
     const [roomToDelete, setRoomToDelete] = useState<any | null>(null);
 
     const [newFloorNum, setNewFloorNum] = useState("");
-    const [newRoomCount, setNewRoomCount] = useState("0");
-    const [newBedsPerRoom, setNewBedsPerRoom] = useState("0");
+    const [newFlatCount, setNewFlatCount] = useState("3");
+    const [generatedFlats, setGeneratedFlats] = useState<FlatConfig[]>([]);
 
     const [newRoomNum, setNewRoomNum] = useState("");
     const [seatsInRoom, setSeatsInRoom] = useState("4");
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [selectedSharingType, setSelectedSharingType] = useState<string>("");
+
+    // Per-flat rent states
+    const [useCustomRent, setUseCustomRent] = useState(false);
+    const [flatMonthlyRent, setFlatMonthlyRent] = useState("");
+    const [flatDailyRent, setFlatDailyRent] = useState("");
+    const [flatDepositAmount, setFlatDepositAmount] = useState("");
 
     // Queries
     const { data: building, isLoading: loadingBuilding } = useBuildingById({
@@ -107,7 +115,7 @@ export default function ManageBuildingLayout() {
     const loading = loadingBuilding || loadingFloors;
 
     // Mutations
-    const { mutateAsync: addFloorMutation } = useAddFloor();
+    const { mutateAsync: addFloorMutation, isPending: addingFloor } = useAddFloor();
     const { mutateAsync: addRoomMutation } = useAddRoom();
     const { mutateAsync: updateRoomMutation } = useUpdateRoom();
     const { mutateAsync: updateBedMutation } = useUpdateBed();
@@ -117,20 +125,48 @@ export default function ManageBuildingLayout() {
     const { mutateAsync: deleteRoomMutation } = useDeleteRoom();
     const { mutateAsync: bulkDeleteSeatsMutation } = useBulkDeleteSeats();
 
+    // Generate flat numbers based on floor label
+    const generateFlats = () => {
+        const count = Number(newFlatCount) || 0;
+        if (count <= 0 || !newFloorNum) {
+            toast.error("Enter floor label and flat count first");
+            return;
+        }
+        const floorDigit = newFloorNum.replace(/\D/g, '') || '0';
+        const flats: FlatConfig[] = Array.from({ length: count }).map((_, i) => ({
+            flatNumber: `${floorDigit}${(i + 1).toString().padStart(2, '0')}`,
+            beds: 4,
+            useCustomRent: false,
+            customMonthlyRent: undefined,
+            customDailyRent: undefined,
+            customDepositAmount: undefined,
+            roomTypeId: '',
+            sharingTypeId: '',
+        }));
+        setGeneratedFlats(flats);
+    };
+
+    const updateFlat = (index: number, updates: Partial<FlatConfig>) => {
+        setGeneratedFlats(prev => prev.map((f, i) => i === index ? { ...f, ...updates } : f));
+    };
+
     const addFloor = async () => {
         if (!newFloorNum || !id) return;
+        if (generatedFlats.length === 0) {
+            toast.error("Please generate flats first");
+            return;
+        }
         try {
             await addFloorMutation({
                 buildingId: id,
                 floorNumber: newFloorNum,
-                roomCount: Number(newRoomCount),
-                bedsPerRoom: Number(newBedsPerRoom),
+                flats: generatedFlats,
             });
-            toast.success("Floor and layout created!");
+            toast.success("Floor and flats created!");
             setOpenFloor(false);
             setNewFloorNum("");
-            setNewRoomCount("0");
-            setNewBedsPerRoom("0");
+            setNewFlatCount("3");
+            setGeneratedFlats([]);
         } catch (e: any) {
             toast.error(e.message || "Failed to add floor");
         }
@@ -145,6 +181,9 @@ export default function ManageBuildingLayout() {
                 totalSeats: Number(seatsInRoom),
                 roomTypeId: selectedRoomType || undefined,
                 sharingTypeId: selectedSharingType || undefined,
+                customMonthlyRent: useCustomRent && flatMonthlyRent ? Number(flatMonthlyRent) : undefined,
+                customDailyRent: useCustomRent && flatDailyRent ? Number(flatDailyRent) : undefined,
+                customDepositAmount: useCustomRent && flatDepositAmount ? Number(flatDepositAmount) : undefined,
             });
 
             toast.success("Flat and beds added!");
@@ -152,6 +191,10 @@ export default function ManageBuildingLayout() {
             setNewRoomNum("");
             setSelectedRoomType("");
             setSelectedSharingType("");
+            setUseCustomRent(false);
+            setFlatMonthlyRent("");
+            setFlatDailyRent("");
+            setFlatDepositAmount("");
         } catch (e: any) {
             toast.error(e.message || "Failed to add flat");
         }
@@ -166,6 +209,9 @@ export default function ManageBuildingLayout() {
                 totalSeats: Number(seatsInRoom),
                 roomTypeId: selectedRoomType || undefined,
                 sharingTypeId: selectedSharingType || undefined,
+                customMonthlyRent: useCustomRent && flatMonthlyRent ? Number(flatMonthlyRent) : null,
+                customDailyRent: useCustomRent && flatDailyRent ? Number(flatDailyRent) : null,
+                customDepositAmount: useCustomRent && flatDepositAmount ? Number(flatDepositAmount) : null,
             });
             toast.success("Flat updated successfully!");
             setOpenEditRoom(false);
@@ -180,6 +226,11 @@ export default function ManageBuildingLayout() {
         setSelectedRoomType(room.room_type_id || "");
         setSelectedSharingType(room.sharing_type_id || "");
         setSeatsInRoom(String(room.total_seats || 4));
+        const hasCustom = room.custom_monthly_rent != null || room.custom_daily_rent != null || room.custom_deposit_amount != null;
+        setUseCustomRent(hasCustom);
+        setFlatMonthlyRent(room.custom_monthly_rent ? String(room.custom_monthly_rent) : "");
+        setFlatDailyRent(room.custom_daily_rent ? String(room.custom_daily_rent) : "");
+        setFlatDepositAmount(room.custom_deposit_amount ? String(room.custom_deposit_amount) : "");
         setOpenEditRoom(true);
     };
 
@@ -323,6 +374,22 @@ export default function ManageBuildingLayout() {
         }
     };
 
+    // Helper: get effective rent for display
+    const getEffectiveRent = (room: any) => {
+        const customM = room.custom_monthly_rent;
+        const customD = room.custom_daily_rent;
+        const customDep = room.custom_deposit_amount;
+        const buildingM = building?.monthly_rent;
+        const buildingD = building?.daily_rent;
+        const buildingDep = building?.deposit_amount;
+        return {
+            monthly: customM != null ? Number(customM) : (buildingM ? Number(buildingM) : null),
+            daily: customD != null ? Number(customD) : (buildingD ? Number(buildingD) : null),
+            deposit: customDep != null ? Number(customDep) : (buildingDep ? Number(buildingDep) : null),
+            isCustom: customM != null || customD != null || customDep != null,
+        };
+    };
+
 
     if (loading) return <div className="p-20 text-center text-slate-400">Loading Layout...</div>;
     if (!building) return <div className="p-20 text-center text-red-400">Building not found or failed to load.</div>;
@@ -348,57 +415,111 @@ export default function ManageBuildingLayout() {
                         <p className="text-slate-500 text-xs sm:text-sm truncate">
                             {building.address?.line_one || 'No address'}, {building.address?.city?.name || 'No city'}
                         </p>
+                        {(building.monthly_rent || building.daily_rent || building.deposit_amount) && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                                Default: ₹{Number(building.monthly_rent || 0).toLocaleString()}/mo · ₹{Number(building.daily_rent || 0).toLocaleString()}/day · ₹{Number(building.deposit_amount || 0).toLocaleString()} dep
+                            </p>
+                        )}
                     </div>
                 </div>
 
-                <Dialog open={openFloor} onOpenChange={setOpenFloor}>
+                <Dialog open={openFloor} onOpenChange={(v) => { setOpenFloor(v); if (!v) { setGeneratedFlats([]); setNewFloorNum(""); setNewFlatCount("3"); } }}>
                     <DialogTrigger asChild>
                         <Button className="shadow-lg shadow-blue-500/20 w-full sm:w-auto font-semibold">
                             <Plus className="w-4 h-4 mr-2" /> Add New Floor
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto">
+                    <DialogContent className="max-w-[95vw] sm:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>Add Floor & Generate Layout</DialogTitle>
+                            <DialogTitle>Add Floor & Configure Flats</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4 text-left">
-                            <div className="space-y-2">
-                                <Label>Floor Label (e.g. 1st Floor, Ground)</Label>
-                                <Input
-                                    value={newFloorNum}
-                                    onChange={(e) => setNewFloorNum(e.target.value)}
-                                    placeholder="Floor 1"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-4">
+                            {/* Step 1: Floor inputs */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-2 sm:col-span-1">
+                                    <Label>Floor Label *</Label>
+                                    <Input value={newFloorNum} onChange={(e) => setNewFloorNum(e.target.value)} placeholder="e.g. Floor 1" />
+                                </div>
                                 <div className="space-y-2">
                                     <Label>Number of Flats</Label>
-                                    <Input
-                                        type="number"
-                                        value={newRoomCount}
-                                        onChange={(e) => setNewRoomCount(e.target.value)}
-                                    />
+                                    <Input type="number" min="1" value={newFlatCount} onChange={(e) => setNewFlatCount(e.target.value)} />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Beds per Flat</Label>
-                                    <Input
-                                        type="number"
-                                        value={newBedsPerRoom}
-                                        onChange={(e) => setNewBedsPerRoom(e.target.value)}
-                                    />
+                                <div className="flex items-end">
+                                    <Button type="button" variant="outline" className="w-full font-semibold border-blue-200 text-blue-600 hover:bg-blue-50" onClick={generateFlats}>
+                                        Generate Flats
+                                    </Button>
                                 </div>
                             </div>
-                            <p className="text-[10px] text-slate-500 italic">
-                                This will automatically generate flats and beds for this floor.
-                            </p>
+
+                            {/* Step 3: Dynamic flat configuration */}
+                            {generatedFlats.length > 0 && (
+                                <div className="border-t pt-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-sm font-bold text-slate-800">Configure Each Flat ({generatedFlats.length})</Label>
+                                        <p className="text-[10px] text-slate-400">Default: ₹{Number(building?.monthly_rent || 0).toLocaleString()}/mo · ₹{Number(building?.daily_rent || 0).toLocaleString()}/day · ₹{Number(building?.deposit_amount || 0).toLocaleString()} dep</p>
+                                    </div>
+                                    {generatedFlats.map((flat, idx) => (
+                                        <div key={idx} className="border border-slate-200 rounded-xl p-3 space-y-3 bg-slate-50/50">
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                <div className="space-y-1">
+                                                    <Label className="text-[11px]">Flat Number</Label>
+                                                    <Input value={flat.flatNumber} onChange={(e) => updateFlat(idx, { flatNumber: e.target.value })} className="h-8 text-sm" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-[11px]">Beds</Label>
+                                                    <Input type="number" min="0" value={flat.beds} onChange={(e) => updateFlat(idx, { beds: Number(e.target.value) })} className="h-8 text-sm" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-[11px]">Flat Type</Label>
+                                                    <Select value={flat.roomTypeId || ''} onValueChange={(v) => updateFlat(idx, { roomTypeId: v })}>
+                                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Type..." /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="none">None</SelectItem>
+                                                            {roomTypes.map((rt: any) => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-[11px]">Sharing</Label>
+                                                    <Select value={flat.sharingTypeId || ''} onValueChange={(v) => { updateFlat(idx, { sharingTypeId: v }); const st = sharingTypes.find((s: any) => s.id === v); if (st) updateFlat(idx, { sharingTypeId: v, beds: st.capacity }); }}>
+                                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Sharing..." /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="none">Custom</SelectItem>
+                                                            {sharingTypes.map((st: any) => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 pt-1">
+                                                <input type="checkbox" id={`custom-rent-${idx}`} checked={flat.useCustomRent} onChange={(e) => updateFlat(idx, { useCustomRent: e.target.checked, customMonthlyRent: e.target.checked ? flat.customMonthlyRent : undefined, customDailyRent: e.target.checked ? flat.customDailyRent : undefined, customDepositAmount: e.target.checked ? flat.customDepositAmount : undefined })} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                                                <label htmlFor={`custom-rent-${idx}`} className="text-xs font-medium text-slate-600">Use Rent Custom Values</label>
+                                                {!flat.useCustomRent && <Badge className="text-[9px] h-4 bg-slate-100 text-slate-500 border-slate-200">Uses Building Default</Badge>}
+                                            </div>
+                                            {flat.useCustomRent && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[11px]">Monthly Rent (₹)</Label>
+                                                        <Input type="number" value={flat.customMonthlyRent || ''} onChange={(e) => updateFlat(idx, { customMonthlyRent: Number(e.target.value) || undefined })} className="h-8 text-sm" placeholder={String(Number(building?.monthly_rent || 0))} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[11px]">Daily Rent (₹)</Label>
+                                                        <Input type="number" value={flat.customDailyRent || ''} onChange={(e) => updateFlat(idx, { customDailyRent: Number(e.target.value) || undefined })} className="h-8 text-sm" placeholder={String(Number(building?.daily_rent || 0))} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[11px]">Deposit (₹)</Label>
+                                                        <Input type="number" value={flat.customDepositAmount || ''} onChange={(e) => updateFlat(idx, { customDepositAmount: Number(e.target.value) || undefined })} className="h-8 text-sm" placeholder={String(Number(building?.deposit_amount || 0))} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <DialogFooter className="flex-col sm:flex-row gap-2">
-                            <Button variant="outline" onClick={() => setOpenFloor(false)} className="w-full sm:w-auto">
-                                Cancel
-                            </Button>
-                            <Button onClick={addFloor} className="w-full sm:w-auto">
-                                Save Floor & Layout
+                            <Button variant="outline" onClick={() => { setOpenFloor(false); setGeneratedFlats([]); }} className="w-full sm:w-auto">Cancel</Button>
+                            <Button onClick={addFloor} disabled={addingFloor || generatedFlats.length === 0} className="w-full sm:w-auto font-semibold">
+                                {addingFloor ? 'Creating...' : `Save Floor & ${generatedFlats.length} Flats`}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -441,6 +562,13 @@ export default function ManageBuildingLayout() {
                                     className="h-8 border-dashed border-blue-200 text-blue-600 hover:bg-blue-50 w-full sm:w-auto font-medium"
                                     onClick={() => {
                                         setSelectedFloor(floor.id);
+                                        setNewRoomNum("");
+                                        setUseCustomRent(false);
+                                        setFlatMonthlyRent("");
+                                        setFlatDailyRent("");
+                                        setSelectedRoomType("");
+                                        setSelectedSharingType("");
+                                        setSeatsInRoom("4");
                                         setOpenRoom(true);
                                     }}
                                 >
@@ -460,6 +588,7 @@ export default function ManageBuildingLayout() {
                                     const isAllSelectableSelected =
                                         selectableSeats.length > 0 &&
                                         selectableSeats.every((s: any) => selectedSeats[room.id]?.has(s.id));
+                                    const rentInfo = getEffectiveRent(room);
 
                                     return (
                                         <Card
@@ -567,7 +696,26 @@ export default function ManageBuildingLayout() {
                                                             {room.sharing_types.name}
                                                         </Badge>
                                                     )}
+                                                    {rentInfo.isCustom ? (
+                                                        <Badge className="text-[10px] uppercase h-5 bg-amber-50 text-amber-700 border-amber-200">
+                                                            <IndianRupee className="w-2.5 h-2.5 mr-0.5" />Custom Rent
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge className="text-[10px] uppercase h-5 bg-slate-50 text-slate-500 border-slate-200">
+                                                            Default Rent
+                                                        </Badge>
+                                                    )}
                                                 </div>
+                                                {/* Rent display */}
+                                                {(rentInfo.monthly || rentInfo.daily || rentInfo.deposit) && (
+                                                    <p className="text-[10px] text-slate-400 mt-1">
+                                                        {rentInfo.monthly ? `₹${rentInfo.monthly.toLocaleString()}/mo` : ''}
+                                                        {(rentInfo.monthly || rentInfo.daily) && rentInfo.deposit ? ' · ' : (rentInfo.monthly && rentInfo.daily ? ' · ' : '')}
+                                                        {rentInfo.daily ? `₹${rentInfo.daily.toLocaleString()}/day` : ''}
+                                                        {rentInfo.daily && rentInfo.deposit ? ' · ' : ''}
+                                                        {rentInfo.deposit ? `₹${rentInfo.deposit.toLocaleString()} dep` : ''}
+                                                    </p>
+                                                )}
                                             </CardHeader>
 
                                             <CardContent className="p-3 sm:p-4 pt-2">
@@ -579,11 +727,10 @@ export default function ManageBuildingLayout() {
                                                         return (
                                                             <div key={seat.id} className="relative group">
                                                                 <div
-                                                                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center transition-all relative ring-offset-2 ${
-                                                                        isOccupied
-                                                                            ? "bg-red-50 text-red-400 border border-red-100 opacity-60 cursor-not-allowed"
-                                                                            : "bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 cursor-pointer"
-                                                                    } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200 text-blue-600 scale-105" : ""}`}
+                                                                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center transition-all relative ring-offset-2 ${isOccupied
+                                                                        ? "bg-red-50 text-red-400 border border-red-100 opacity-60 cursor-not-allowed"
+                                                                        : "bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 cursor-pointer"
+                                                                        } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200 text-blue-600 scale-105" : ""}`}
                                                                     onClick={() => {
                                                                         if (isRoomInSelectionMode) {
                                                                             toggleSeatSelection(
@@ -651,7 +798,7 @@ export default function ManageBuildingLayout() {
 
             {/* Add Flat Modal */}
             <Dialog open={openRoom} onOpenChange={setOpenRoom}>
-                <DialogContent className="max-w-[95vw] sm:max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Add Flat to Floor</DialogTitle>
                     </DialogHeader>
@@ -718,6 +865,32 @@ export default function ManageBuildingLayout() {
                                 </p>
                             )}
                         </div>
+
+                        {/* Per-Flat Rent and Deposit Configuration */}
+                        <div className="border-t pt-4 mt-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <input type="checkbox" id="add-flat-custom-rent" checked={useCustomRent} onChange={(e) => { setUseCustomRent(e.target.checked); if (!e.target.checked) { setFlatMonthlyRent(""); setFlatDailyRent(""); setFlatDepositAmount(""); } }} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                                <label htmlFor="add-flat-custom-rent" className="text-sm font-semibold text-slate-700">Use Custom Values</label>
+                                {!useCustomRent && <Badge className="text-[9px] h-4 bg-slate-100 text-slate-500 border-slate-200">Uses Building Default</Badge>}
+                            </div>
+                            {!useCustomRent && (
+                                <p className="text-[10px] text-slate-500 mb-3">
+                                    This flat will use building default rent: ₹{Number(building?.monthly_rent || 0).toLocaleString()}/mo · ₹{Number(building?.daily_rent || 0).toLocaleString()}/day
+                                </p>
+                            )}
+                            {useCustomRent && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">Monthly Rent (₹)</Label>
+                                        <Input type="number" value={flatMonthlyRent} onChange={(e) => setFlatMonthlyRent(e.target.value)} placeholder={String(Number(building?.monthly_rent || 0))} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">Daily Rent (₹)</Label>
+                                        <Input type="number" value={flatDailyRent} onChange={(e) => setFlatDailyRent(e.target.value)} placeholder={String(Number(building?.daily_rent || 0))} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <DialogFooter className="flex-col sm:flex-row gap-2">
                         <Button variant="outline" onClick={() => setOpenRoom(false)} className="w-full sm:w-auto">
@@ -732,7 +905,7 @@ export default function ManageBuildingLayout() {
 
             {/* Edit Flat Modal */}
             <Dialog open={openEditRoom} onOpenChange={setOpenEditRoom}>
-                <DialogContent className="max-w-[95vw] sm:max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Flat Details</DialogTitle>
                     </DialogHeader>
@@ -798,6 +971,36 @@ export default function ManageBuildingLayout() {
                                 <p className="text-[10px] text-blue-500 italic">
                                     Locked to {sharingTypes.find((s) => s.id === selectedSharingType)?.name} capacity
                                 </p>
+                            )}
+                        </div>
+
+                        {/* Per-Flat Rent and Deposit Configuration */}
+                        <div className="border-t pt-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <input type="checkbox" id="edit-flat-custom-rent" checked={useCustomRent} onChange={(e) => { setUseCustomRent(e.target.checked); if (!e.target.checked) { setFlatMonthlyRent(""); setFlatDailyRent(""); setFlatDepositAmount(""); } }} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                                <label htmlFor="edit-flat-custom-rent" className="text-sm font-semibold text-slate-700">Use Custom Values</label>
+                                {!useCustomRent && <Badge className="text-[9px] h-4 bg-slate-100 text-slate-500 border-slate-200">Uses Building Default</Badge>}
+                            </div>
+                            {!useCustomRent && (
+                                <p className="text-[10px] text-slate-500 mb-3">
+                                    This flat uses building default values: ₹{Number(building?.monthly_rent || 0).toLocaleString()}/mo · ₹{Number(building?.daily_rent || 0).toLocaleString()}/day
+                                </p>
+                            )}
+                            {useCustomRent && (
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">Monthly Rent (₹)</Label>
+                                        <Input type="number" value={flatMonthlyRent} onChange={(e) => setFlatMonthlyRent(e.target.value)} placeholder={String(Number(building?.monthly_rent || 0))} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">Daily Rent (₹)</Label>
+                                        <Input type="number" value={flatDailyRent} onChange={(e) => setFlatDailyRent(e.target.value)} placeholder={String(Number(building?.daily_rent || 0))} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">Deposit (₹)</Label>
+                                        <Input type="number" value={flatDepositAmount} onChange={(e) => setFlatDepositAmount(e.target.value)} placeholder={String(Number(building?.deposit_amount || 0))} />
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
