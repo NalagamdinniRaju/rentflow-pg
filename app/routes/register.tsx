@@ -35,10 +35,10 @@ export default function RegisterPage() {
     if (typeof window === 'undefined') return false;
     return sessionStorage.getItem('register_agreed') === 'true';
   });
-  
+
   const [aadharFile, setAadharFile] = useState<File | null>(null);
   const [aadharPreview, setAadharPreview] = useState<string | null>(null);
-  
+
   const [form, setForm] = useState(() => {
     const defaultForm = {
       name: '', phone: '', email: '',
@@ -76,10 +76,10 @@ export default function RegisterPage() {
   });
 
   const { data: rooms = [] } = useRegistrationRooms({
-    variables: { 
-      floorId: form.floor_id, 
-      roomTypeId: form.room_type_id, 
-      sharingTypeId: form.sharing_type_id 
+    variables: {
+      floorId: form.floor_id,
+      roomTypeId: form.room_type_id,
+      sharingTypeId: form.sharing_type_id
     },
     enabled: !!form.floor_id,
   });
@@ -96,12 +96,12 @@ export default function RegisterPage() {
   const selectedBuilding = buildings.find(b => b.id === form.building_id);
   const selectedRoom = rooms.find(r => r.id === form.room_id);
 
-  const effectiveMonthly = selectedRoom?.custom_monthly_rent != null 
-    ? Number(selectedRoom.custom_monthly_rent) 
+  const effectiveMonthly = selectedRoom?.custom_monthly_rent != null
+    ? Number(selectedRoom.custom_monthly_rent)
     : (Number(selectedBuilding?.monthly_rent) || 6000);
 
-  const effectiveDaily = selectedRoom?.custom_daily_rent != null 
-    ? Number(selectedRoom.custom_daily_rent) 
+  const effectiveDaily = selectedRoom?.custom_daily_rent != null
+    ? Number(selectedRoom.custom_daily_rent)
     : (Number(selectedBuilding?.daily_rent) || 300);
 
   const effectiveDeposit = selectedRoom?.custom_deposit_amount != null
@@ -121,8 +121,8 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await registerUser({ 
-        ...form, 
+      await registerUser({
+        ...form,
         aadhar_file: aadharFile,
         deposit_amount: effectiveDeposit,
         monthly_rent: effectiveMonthly,
@@ -256,9 +256,9 @@ export default function RegisterPage() {
                     <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id || rooms.length === 0}>
                       <SelectTrigger>
                         <SelectValue placeholder={
-                          !form.floor_id 
-                            ? "Select Floor First" 
-                            : rooms.length === 0 
+                          !form.floor_id
+                            ? "Select Floor First"
+                            : rooms.length === 0
                               ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} flats available`
                               : "Select Flat"
                         } />
@@ -301,7 +301,7 @@ export default function RegisterPage() {
                     <h3 className="text-sm font-bold text-emerald-900 mb-2 border-b border-emerald-200/50 pb-2 flex items-center gap-2">
                       Rent Summary
                     </h3>
-                    
+
                     <div className="mb-3 mt-1">
                       {rentSource === 'flat-custom' ? (
                         <div className="flex items-center gap-2 text-xs">
@@ -396,7 +396,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="flex flex-col items-center justify-center">
-                  <label 
+                  <label
                     htmlFor="aadhar-upload"
                     className={`relative w-full aspect-[1.6/1] max-w-md border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer transition-all overflow-hidden
                       ${aadharPreview ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'}`}
@@ -421,11 +421,11 @@ export default function RegisterPage() {
                         </div>
                       </>
                     )}
-                    <input 
-                      id="aadhar-upload" 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*,.pdf" 
+                    <input
+                      id="aadhar-upload"
+                      type="file"
+                      className="hidden"
+                      accept="image/*,.pdf"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -474,11 +474,11 @@ export default function RegisterPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
                   <strong>Note:</strong> Your application will be reviewed by the PG Admin. You'll receive access once approved.
                 </div>
-                
+
                 <div className="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <input 
-                    type="checkbox" 
-                    id="terms" 
+                  <input
+                    type="checkbox"
+                    id="terms"
                     className="mt-1 flex-shrink-0 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}

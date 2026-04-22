@@ -60,7 +60,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ScrollRestoration />
         <Scripts />
         <Toaster position="top-right" />
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script dangerouslySetInnerHTML={{
+          __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
               navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
@@ -207,7 +208,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       <div className="text-center max-w-lg w-full bg-white p-10 rounded-[32px] border border-slate-100 shadow-xl">
         <h1 className="text-5xl font-black text-slate-900 mb-6">{message}</h1>
         <p className="text-slate-500 mb-8 font-medium italic">"{details}"</p>
-        <button 
+        <button
           onClick={() => window.location.href = '/'}
           className="bg-blue-600 text-white px-8 py-4 rounded-2xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/20"
         >

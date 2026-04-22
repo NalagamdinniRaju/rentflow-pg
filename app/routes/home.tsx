@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuthStore } from '~/store/auth.store';
-import { 
-  ArrowRight, ShieldCheck, Wifi, Utensils, Sparkles, Shield, Zap, 
+import {
+  ArrowRight, ShieldCheck, Wifi, Utensils, Sparkles, Shield, Zap,
   ChevronLeft, ChevronRight, User, Phone, MessageCircle, Mail, MapPin,
   Home, Compass, Heart, Star, Car, Shirt, Flame
 } from 'lucide-react';
@@ -25,7 +25,7 @@ export default function HomePage() {
     const animate = () => {
       if (!isHoveredRef.current) {
         scrollPos += 0.5; // continuous linear speed
-        
+
         // Exact element where loop duplicates
         const resetNode = el.children[6] as HTMLElement;
         const resetPoint = resetNode ? resetNode.offsetLeft : el.scrollWidth / 2;
@@ -61,7 +61,7 @@ export default function HomePage() {
       <div className="flex-none w-[85%] sm:w-[350px] bg-surface-container-lowest p-8 rounded-2xl shadow-premium group hover:bg-primary transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border-b-4 border-transparent hover:border-white/20">
         <Utensils className="w-10 h-10 text-primary group-hover:text-on-primary mb-6 transition-colors duration-300" />
         <h3 className="text-xl font-bold text-tertiary group-hover:text-on-primary mb-3 transition-colors duration-300">Meals</h3>
-        <p className="text-on-surface-variant group-hover:text-primary-container text-sm leading-relaxed transition-colors duration-300">Nutritious and hygienic meals served daily. <br/><span className="block mt-2 opacity-90"><strong className="font-bold">Weekdays:</strong> Breakfast & Dinner <br/><strong className="font-bold">Weekends:</strong> Breakfast, Lunch & Dinner</span></p>
+        <p className="text-on-surface-variant group-hover:text-primary-container text-sm leading-relaxed transition-colors duration-300">Nutritious and hygienic meals served daily. <br /><span className="block mt-2 opacity-90"><strong className="font-bold">Weekdays:</strong> Breakfast & Dinner <br /><strong className="font-bold">Weekends:</strong> Breakfast, Lunch & Dinner</span></p>
       </div>
       <div className="flex-none w-[85%] sm:w-[350px] bg-surface-container-lowest p-8 rounded-2xl shadow-premium group hover:bg-primary transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border-b-4 border-transparent hover:border-white/20">
         <Car className="w-10 h-10 text-primary group-hover:text-on-primary mb-6 transition-colors duration-300" />
@@ -125,7 +125,7 @@ export default function HomePage() {
         .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
         .scroll-reveal { transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
       `}</style>
-      
+
       {/* TopAppBar */}
       <header className="fixed top-0 left-0 right-0 w-full z-50 bg-[#f7f9ff] shadow-premium">
         <nav className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
@@ -138,13 +138,13 @@ export default function HomePage() {
             <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#amenities">Amenities</a>
             <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#flats">Flats</a>
             <a className="text-[#444651] hover:text-[#072b7e] font-manrope text-sm transition-colors" href="#contact">Contact</a>
-            
+
             <Link className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 active:scale-95 duration-200 transition-all shadow-md" to="/register">Register</Link>
             <Link className="border border-outline-variant text-primary px-6 py-2.5 rounded-full font-bold text-sm hover:bg-surface-container-low active:scale-95 duration-200 transition-all shadow-sm bg-white" to="/login">Login</Link>
           </div>
           {/* Mobile CTA */}
           <div className="flex md:hidden items-center">
-             <Link className="bg-primary text-on-primary px-5 py-2 rounded-full font-bold text-sm transition-all active:scale-95 duration-200" to="/register">Book Now</Link>
+            <Link className="bg-primary text-on-primary px-5 py-2 rounded-full font-bold text-sm transition-all active:scale-95 duration-200" to="/register">Book Now</Link>
           </div>
         </nav>
       </header>
@@ -193,7 +193,7 @@ export default function HomePage() {
         {/* Mobile Hero Section */}
         <section className="px-6 py-8 md:hidden scroll-reveal opacity-0 translate-y-8">
           <div className="relative w-full rounded-xl overflow-hidden aspect-[4/5] shadow-premium">
-            <img className="absolute inset-0 w-full h-full object-cover" alt="High-end modern coliving space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7iHqGBi_WUz3p7CBR4Fi871eZfSP4MjZ2808IWFgO4baJBmyMOcJTKNQI_AXfT6c_5XIUAN9oPoCxeEAcQTQrXo-UXhgzEPOB8IPD3yU8s1CKUZoaM8pKAZqjm2o-NuMTLMjnjcEmW1jI71XUdVhgeNV98Q_H8812hnZBOrdQXuMfls3YEP4YKlpOSg4DfF6erY4z6WPrJaKVRtNsXCXXh1gJWPbeQ-OloxudJi1Iyp2mfSu8TYGlgdmfUYgyxCPT9taIKj-BO1U"/>
+            <img className="absolute inset-0 w-full h-full object-cover" alt="High-end modern coliving space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7iHqGBi_WUz3p7CBR4Fi871eZfSP4MjZ2808IWFgO4baJBmyMOcJTKNQI_AXfT6c_5XIUAN9oPoCxeEAcQTQrXo-UXhgzEPOB8IPD3yU8s1CKUZoaM8pKAZqjm2o-NuMTLMjnjcEmW1jI71XUdVhgeNV98Q_H8812hnZBOrdQXuMfls3YEP4YKlpOSg4DfF6erY4z6WPrJaKVRtNsXCXXh1gJWPbeQ-OloxudJi1Iyp2mfSu8TYGlgdmfUYgyxCPT9taIKj-BO1U" />
             <div className="absolute inset-0 bg-gradient-to-t from-tertiary via-tertiary/20 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-8 w-full z-10">
               <span className="text-on-primary-container bg-primary-container/30 backdrop-blur-md px-3 py-1 rounded-sm text-[10px] uppercase tracking-[0.1em] font-bold mb-3 inline-block">Premium Stay</span>
@@ -240,9 +240,9 @@ export default function HomePage() {
               <div className="h-1 w-12 bg-primary mt-2 mb-4 rounded-full md:hidden"></div>
               <p className="text-on-surface-variant max-w-2xl">Everything you need to thrive, curated with a concierge touch to ensure you never have to worry about the small things.</p>
             </div>
-            <div 
-              className="flex overflow-x-auto gap-4 md:gap-6 pb-4 md:pb-0 relative" 
-              ref={amenitiesRef} 
+            <div
+              className="flex overflow-x-auto gap-4 md:gap-6 pb-4 md:pb-0 relative"
+              ref={amenitiesRef}
               style={{ scrollbarWidth: 'none' }}
               onMouseEnter={() => isHoveredRef.current = true}
               onMouseLeave={() => isHoveredRef.current = false}
@@ -271,7 +271,7 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          
+
           <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible gap-4 md:gap-8 pb-4 md:pb-0 scroll-reveal opacity-0 translate-y-8 snap-x snap-mandatory">
             {/* Flat Card 1 */}
             <div className="group flex-none w-[85%] md:w-auto snap-center">
@@ -320,7 +320,7 @@ export default function HomePage() {
               <div className="h-1 w-12 bg-primary mt-2 mb-4 rounded-full mx-auto md:mx-0"></div>
               <p className="text-on-surface-variant max-w-2xl mx-auto md:mx-0">Read about the premium experiences of our modern professionals who call Lucky Luxury their home.</p>
             </div>
-            
+
             <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 pb-4 md:pb-0 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
               <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
                 <div className="flex gap-1 text-primary-container mb-6">
@@ -341,7 +341,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
                 <div className="flex gap-1 text-primary-container mb-6">
                   {[...Array(5)].map((_, i) => (
@@ -361,7 +361,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-surface-container-low p-8 rounded-xl shadow-premium min-w-[85%] md:min-w-0 snap-center">
                 <div className="flex gap-1 text-primary-container mb-6">
                   {[...Array(4)].map((_, i) => (

@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const role = await signIn(values.email, values.password);
       toast.success("Login successful!");
-      
+
       if (role === 'SUPER_ADMIN') {
         navigate('/super-admin');
       } else if (role === 'ADMIN') {
@@ -49,7 +49,7 @@ export default function LoginPage() {
         navigate('/resident');
       }
     } catch (err: unknown) {
-      if(err instanceof Error) {
+      if (err instanceof Error) {
         toast.error(err.message === 'Invalid login credentials' ? 'Incorrect email or password' : err.message);
       }
     }
@@ -100,7 +100,7 @@ export default function LoginPage() {
                       <FormLabel>Password</FormLabel>
                       <div className="relative">
                         <FormControl>
-                           <Input type={showPwd ? 'text' : 'password'} placeholder="••••••••" className="pr-10" autoComplete="current-password" {...field} />
+                          <Input type={showPwd ? 'text' : 'password'} placeholder="••••••••" className="pr-10" autoComplete="current-password" {...field} />
                         </FormControl>
                         <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                           {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
