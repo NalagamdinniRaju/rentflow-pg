@@ -148,7 +148,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center gap-3 mb-6">
-            <img alt="Lucky Luxury Logo" className="h-14 md:h-16 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-14 md:h-16 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="text-xl md:text-2xl font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG Services</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">Register for a PG Account</h1>

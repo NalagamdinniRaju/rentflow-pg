@@ -37,6 +37,46 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+function extractFirstNumber(value: string): number | null {
+  const match = (value || '').match(/\d+/);
+  return match ? Number.parseInt(match[0], 10) : null;
+}
+
+export function floorSortKey(floorNumber: string): number {
+  const normalized = (floorNumber || '').trim().toLowerCase();
+  const numericPart = extractFirstNumber(normalized);
+
+  if (normalized.startsWith('g')) {
+    return numericPart === null ? -1000 : -1000 + numericPart;
+  }
+
+  return numericPart ?? Number.MAX_SAFE_INTEGER;
+}
+
+export function compareFloorLabels(left: string, right: string): number {
+  const keyDifference = floorSortKey(left) - floorSortKey(right);
+  if (keyDifference !== 0) return keyDifference;
+
+  return (left || '').localeCompare(right || '', undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+}
+
+export function roomSortKey(roomNumber: string): number {
+  return extractFirstNumber(roomNumber) ?? Number.MAX_SAFE_INTEGER;
+}
+
+export function compareRoomLabels(left: string, right: string): number {
+  const keyDifference = roomSortKey(left) - roomSortKey(right);
+  if (keyDifference !== 0) return keyDifference;
+
+  return (left || '').localeCompare(right || '', undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+}
+
 export function getStatusColor(status: string): string {
   const map: Record<string, string> = {
     ACTIVE: 'bg-emerald-100 text-emerald-700 border border-emerald-200',

@@ -130,7 +130,7 @@ export default function HomePage() {
       <header className="fixed top-0 left-0 right-0 w-full z-50 bg-[#f7f9ff] shadow-premium">
         <nav className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img alt="Lucky Luxury Logo" className="h-10 sm:h-14 md:h-16 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-10 sm:h-14 md:h-16 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="font-extrabold text-[#072b7e] font-headline text-[13px] leading-tight sm:text-xl sm:leading-normal mt-0.5 w-[110px] sm:w-auto">Lucky Luxury PG Services</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -458,7 +458,7 @@ export default function HomePage() {
       <footer className="bg-surface-container-low w-full rounded-t-xl mt-[-10px] md:mt-0 relative z-10 scroll-reveal opacity-0 translate-y-4">
         <div className="flex flex-col items-center py-10 md:py-12 px-6 w-full space-y-4 max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-2 md:mb-4">
-            <img alt="Lucky Luxury Logo" className="h-12 sm:h-16 md:h-20 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-12 sm:h-16 md:h-20 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="font-extrabold text-[#072b7e] font-headline text-lg sm:text-2xl mt-0.5 text-center">Lucky Luxury PG Services</span>
           </div>
           <div className="flex flex-wrap justify-center gap-6 md:gap-8 mb-2">

@@ -1,6 +1,7 @@
 import { createQuery, createMutation } from 'react-query-kit';
 import { supabase, unwrapSupabaseResponse } from './utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { compareFloorLabels, compareRoomLabels } from '~/lib/utils';
 
 export const registerKeys = {
   states: ['register', 'states'] as const,
@@ -57,7 +58,8 @@ export const useRegistrationFloors = createQuery<{id: string; floor_number: stri
   queryKey: ['register', 'floors'],
   fetcher: async (variables) => {
     const res = await supabase.from('floors').select('id, floor_number').eq('building_id', variables.buildingId);
-    return unwrapSupabaseResponse(res) as {id: string; floor_number: string}[];
+    const data = unwrapSupabaseResponse(res) as {id: string; floor_number: string}[];
+    return [...data].sort((a, b) => compareFloorLabels(a.floor_number, b.floor_number));
   }
 });
 
@@ -72,7 +74,8 @@ export const useRegistrationRooms = createQuery<{id: string; room_number: string
       query = query.eq('sharing_type_id', variables.sharingTypeId);
     }
     const res = await query;
-    return unwrapSupabaseResponse(res) as {id: string; room_number: string; custom_monthly_rent: number | null; custom_daily_rent: number | null; custom_deposit_amount: number | null}[];
+    const data = unwrapSupabaseResponse(res) as {id: string; room_number: string; custom_monthly_rent: number | null; custom_daily_rent: number | null; custom_deposit_amount: number | null}[];
+    return [...data].sort((a, b) => compareRoomLabels(a.room_number, b.room_number));
   }
 });
 

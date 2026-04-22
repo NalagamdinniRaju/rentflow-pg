@@ -127,7 +127,7 @@ export default function AdminLayout() {
         >
           <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 shrink-0 shadow-sm transition-colors bg-white">
             <div className={cn("flex items-center gap-3 overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
-              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
               {!isCollapsed && <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] md:block hidden mt-0.5">Lucky Luxury PG Services</span>}
               <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] block md:hidden ml-3 mt-0.5">Lucky Luxury PG</span>
             </div>
@@ -216,7 +216,7 @@ export default function AdminLayout() {
                 <Menu className="w-6 h-6" />
               </Button>
               <div className="flex items-center gap-2">
-                <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+                <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
                 <span className="font-extrabold tracking-tight text-[#072b7e] mt-0.5">Lucky Luxury PG</span>
               </div>
             </div>

@@ -37,7 +37,7 @@ export default function ResidentLayout() {
       <aside className="hidden md:flex w-64 bg-[#0F172A] text-white flex-col shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-white/10 bg-white">
           <div className="flex items-center gap-3">
-            <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="font-extrabold text-[#072b7e] tracking-tight text-sm mt-0.5">Lucky Luxury PG Services</span>
           </div>
         </div>

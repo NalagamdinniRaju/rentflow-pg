@@ -1,6 +1,7 @@
 import { createQuery, createMutation } from 'react-query-kit';
 import { supabase, unwrapSupabaseResponse } from './utils';
 import { queryClient } from './client';
+import { compareFloorLabels, compareRoomLabels } from '~/lib/utils';
 import type { Database } from '~/lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -254,7 +255,15 @@ export const useBuildingLayout = createQuery<any[], { buildingId: string }>({
       .eq('building_id', variables.buildingId)
       .order('floor_number', { ascending: true });
     const data = unwrapSupabaseResponse(response);
-    return Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) return [];
+    return data
+      .sort((a: any, b: any) => compareFloorLabels(a.floor_number, b.floor_number))
+      .map((floor: any) => ({
+        ...floor,
+        rooms: Array.isArray(floor.rooms)
+          ? [...floor.rooms].sort((a: any, b: any) => compareRoomLabels(a.room_number, b.room_number))
+          : floor.rooms,
+      }));
   },
 });
 

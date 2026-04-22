@@ -1,6 +1,7 @@
 import { createQuery, createMutation } from 'react-query-kit';
 import { supabase, unwrapSupabaseResponse } from './utils';
 import { queryClient } from './client';
+import { compareFloorLabels, compareRoomLabels } from '~/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -62,7 +63,15 @@ export const useBuildingLayout = createQuery<FloorWithRooms[], { buildingId: str
       .select('*, rooms(*, seats(*))')
       .eq('building_id', variables.buildingId)
       .order('floor_number', { ascending: true });
-    return unwrapSupabaseResponse(response) as FloorWithRooms[];
+    const data = unwrapSupabaseResponse(response) as FloorWithRooms[];
+    return data
+      .sort((a, b) => compareFloorLabels(a.floor_number, b.floor_number))
+      .map((floor) => ({
+        ...floor,
+        rooms: Array.isArray(floor.rooms)
+          ? [...floor.rooms].sort((a, b) => compareRoomLabels(a.room_number, b.room_number))
+          : floor.rooms,
+      })) as FloorWithRooms[];
   },
 });
 
@@ -74,7 +83,8 @@ export const useFloors = createQuery<FloorBasic[], { buildingId: string }>({
       .from('floors')
       .select('id, floor_number')
       .eq('building_id', variables.buildingId);
-    return unwrapSupabaseResponse(response) as FloorBasic[];
+    const data = unwrapSupabaseResponse(response) as FloorBasic[];
+    return [...data].sort((a, b) => compareFloorLabels(a.floor_number, b.floor_number));
   },
 });
 
@@ -95,7 +105,8 @@ export const useRooms = createQuery<RoomBasic[], { floorId: string; roomTypeId?:
     }
     
     const response = await query;
-    return unwrapSupabaseResponse(response) as RoomBasic[];
+    const data = unwrapSupabaseResponse(response) as RoomBasic[];
+    return [...data].sort((a, b) => compareRoomLabels(a.room_number, b.room_number));
   },
 });
 

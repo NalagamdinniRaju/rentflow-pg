@@ -60,7 +60,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md mx-auto">
         <div className="flex justify-center flex-col items-center">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <img alt="Lucky Luxury Logo" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="font-extrabold text-[#072b7e] text-lg sm:text-xl md:text-2xl tracking-tight block mt-0.5 text-center leading-tight">Lucky Luxury PG Services</span>
           </div>
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
