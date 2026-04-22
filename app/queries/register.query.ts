@@ -88,7 +88,8 @@ export const useRegisterUser = createMutation<void, any>({
   mutationFn: async (variables) => {
     const { 
       email, password, name, phone, line_one, line_two, pincode, city_id, 
-      building_id, floor_id, room_id, seat_id, age, gender, aadhar_file
+      building_id, floor_id, room_id, seat_id, age, gender, aadhar_file,
+      stay_type, deposit_amount, monthly_rent, daily_rent
     } = variables;
 
     // 1. Auth creation
@@ -148,6 +149,10 @@ export const useRegisterUser = createMutation<void, any>({
       email,
       age: age ? parseInt(age) : null,
       gender: gender || null,
+      stay_type: stay_type || 'MONTHLY',
+      monthly_rent: monthly_rent != null ? Number(monthly_rent) : null,
+      daily_rent: daily_rent != null ? Number(daily_rent) : null,
+      deposit_amount: deposit_amount != null ? Number(deposit_amount) : null,
       status: 'PENDING',
       address_id: addrData.id,
       aadhar_photo: aadharUrl,

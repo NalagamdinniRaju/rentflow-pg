@@ -123,7 +123,10 @@ export default function RegisterPage() {
     try {
       await registerUser({ 
         ...form, 
-        aadhar_file: aadharFile 
+        aadhar_file: aadharFile,
+        deposit_amount: effectiveDeposit,
+        monthly_rent: effectiveMonthly,
+        daily_rent: effectiveDaily
       } as any);
       sessionStorage.removeItem('register_step');
       sessionStorage.removeItem('register_form');
