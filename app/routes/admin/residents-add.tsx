@@ -1,11 +1,10 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, UserPlus, Building2, Upload, IndianRupee, Info } from 'lucide-react';
-import { useAdminBuildingsBasic, useBuildingById } from '~/queries/buildings.query';
-import { useManagementContext } from '~/hooks/use-management-context';
-import { useFloors, useRooms, useAvailableSeats, useRoomDetails } from '~/queries/layout.query';
-import { useRoomTypes, useSharingTypes } from '~/queries/room-types.query';
+import { ArrowLeft, UserPlus, Building2 } from 'lucide-react';
+import { useAdminBuildingsBasic } from '~/queries/buildings.query';
+import { useFloors, useRooms, useAvailableSeats } from '~/queries/layout.query';
+import { useRoomTypes } from '~/queries/room-types.query';
 import { useAddResident } from '~/queries/residents.query';
 import { useAuthStore } from '~/store/auth.store';
 import { Button } from '~/components/ui/button';
@@ -118,7 +117,6 @@ export default function AddResidentPage() {
     enabled: !!floorId 
   });
   const { data: roomTypes = [] } = useRoomTypes();
-  const { data: sharingTypes = [] } = useSharingTypes();
   const { data: seats = [] } = useAvailableSeats({ 
     variables: { roomId: roomId || '' }, 
     enabled: !!roomId 
@@ -449,32 +447,6 @@ export default function AddResidentPage() {
                           <SelectContent>
                             <SelectItem value="all">Any Type</SelectItem>
                             {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sharing_type_id"
-                    render={({ field }: { field: any }) => (
-                      <FormItem>
-                        <FormLabel>Sharing (Filter)</FormLabel>
-                        <Select 
-                          value={field.value} 
-                          onValueChange={(val) => {
-                            field.onChange(val);
-                            form.setValue('room_id', '');
-                            form.setValue('seat_id', '');
-                          }}
-                        >
-                          <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Any Sharing" /></SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="all">Any Sharing</SelectItem>
-                            {sharingTypes.map(st => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </FormItem>

@@ -14,7 +14,6 @@ import {
   useRegistrationStates,
   useRegistrationCities,
   useRegistrationRoomTypes,
-  useRegistrationSharingTypes,
   useRegisterUser
 } from '~/queries/register.query';
 
@@ -63,7 +62,6 @@ export default function RegisterPage() {
   const { data: states = [] } = useRegistrationStates();
   const { data: buildings = [] } = useRegistrationBuildings();
   const { data: roomTypes = [] } = useRegistrationRoomTypes();
-  const { data: sharingTypes = [] } = useRegistrationSharingTypes();
 
   const { data: cities = [] } = useRegistrationCities({
     variables: { stateId: form.state_id },
@@ -198,7 +196,7 @@ export default function RegisterPage() {
                   <Label htmlFor="email">Email Address *</Label>
                   <Input id="email" type="email" placeholder="you@example.com" value={form.email} onChange={e => update('email', e.target.value)} required />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Gender *</Label>
                     <Select value={form.gender} onValueChange={v => update('gender', v)}>
@@ -215,7 +213,7 @@ export default function RegisterPage() {
                     <Input id="age" type="number" placeholder="24" value={form.age} onChange={e => update('age', e.target.value)} required />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Select Building *</Label>
                     <Select value={form.building_id} onValueChange={v => { update('building_id', v); update('floor_id', ''); update('room_id', ''); update('seat_id', ''); }}>
@@ -235,29 +233,17 @@ export default function RegisterPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Flat Type (Optional)</Label>
-                    <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
-                      <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any Type</SelectItem>
-                        {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Sharing (Optional)</Label>
-                    <Select value={form.sharing_type_id} onValueChange={v => { update('sharing_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
-                      <SelectTrigger><SelectValue placeholder="Any Sharing" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any Sharing</SelectItem>
-                        {sharingTypes.map(st => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label>Flat Type (Optional)</Label>
+                  <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
+                    <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Any Type</SelectItem>
+                      {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Flat *</Label>
                     <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id || rooms.length === 0}>
@@ -266,7 +252,7 @@ export default function RegisterPage() {
                           !form.floor_id
                             ? "Select Floor First"
                             : rooms.length === 0
-                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} flats available`
+                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} flats available`
                               : "Select Flat"
                         } />
                       </SelectTrigger>
@@ -276,7 +262,7 @@ export default function RegisterPage() {
                     </Select>
                     {form.floor_id && rooms.length === 0 && (
                       <p className="text-[10px] text-red-500 font-medium">
-                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} and {sharingTypes.find(st => st.id === form.sharing_type_id)?.name || 'any'} configuration on this floor.
+                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} type on this floor.
                       </p>
                     )}
                   </div>

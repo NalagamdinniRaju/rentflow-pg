@@ -49,7 +49,7 @@ import {
     useBulkDeleteSeats,
     type FlatConfig,
 } from "~/queries/buildings.query";
-import { useRoomTypes, useSharingTypes } from "~/queries/room-types.query";
+import { useRoomTypes } from "~/queries/room-types.query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { useAuthStore } from "~/store/auth.store";
 
@@ -120,7 +120,6 @@ export default function ManageBuildingLayout() {
     });
 
     const { data: roomTypes = [] } = useRoomTypes();
-    const { data: sharingTypes = [] } = useSharingTypes();
 
     const getEffectiveRent = (room: any) => {
         const hasCustom = room.custom_monthly_rent != null || room.custom_daily_rent != null || room.custom_deposit_amount != null;
@@ -950,29 +949,6 @@ export default function ManageBuildingLayout() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Sharing Type</Label>
-                                <Select
-                                    value={selectedSharingType}
-                                    onValueChange={(v) => {
-                                        setSelectedSharingType(v);
-                                        const st = sharingTypes.find((s) => s.id === v);
-                                        if (st) setSeatsInRoom(String(st.capacity));
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select sharing..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">Custom Capacity</SelectItem>
-                                        {sharingTypes.map((st) => (
-                                            <SelectItem key={st.id} value={st.id}>
-                                                {st.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Beds per Flat</Label>
@@ -980,13 +956,7 @@ export default function ManageBuildingLayout() {
                                 type="number"
                                 value={seatsInRoom}
                                 onChange={(e) => setSeatsInRoom(e.target.value)}
-                                disabled={selectedSharingType !== "" && selectedSharingType !== "none"}
                             />
-                            {selectedSharingType !== "" && selectedSharingType !== "none" && (
-                                <p className="text-[10px] text-blue-500 italic">
-                                    Locked to {sharingTypes.find((s) => s.id === selectedSharingType)?.name} capacity
-                                </p>
-                            )}
                         </div>
 
                         {/* Per-Flat Rent and Deposit Configuration */}
@@ -1058,29 +1028,6 @@ export default function ManageBuildingLayout() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Sharing Type</Label>
-                                <Select
-                                    value={selectedSharingType}
-                                    onValueChange={(v) => {
-                                        setSelectedSharingType(v);
-                                        const st = sharingTypes.find((s) => s.id === v);
-                                        if (st) setSeatsInRoom(String(st.capacity));
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Single, Double..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">None</SelectItem>
-                                        {sharingTypes.map((st) => (
-                                            <SelectItem key={st.id} value={st.id}>
-                                                {st.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
                         <div className="space-y-2 mt-4 pt-2 border-t">
                             <Label>Number of Seats (Beds)</Label>
@@ -1088,13 +1035,7 @@ export default function ManageBuildingLayout() {
                                 type="number"
                                 value={seatsInRoom}
                                 onChange={(e) => setSeatsInRoom(e.target.value)}
-                                disabled={selectedSharingType !== "" && selectedSharingType !== "none"}
                             />
-                            {selectedSharingType !== "" && selectedSharingType !== "none" && (
-                                <p className="text-[10px] text-blue-500 italic">
-                                    Locked to {sharingTypes.find((s) => s.id === selectedSharingType)?.name} capacity
-                                </p>
-                            )}
                         </div>
 
                         {/* Per-Flat Rent and Deposit Configuration */}
