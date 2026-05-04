@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router';
-import { 
-  Building2, Users, IndianRupee, Receipt, Bell, BarChart3, Settings, 
-  LogOut, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight, Tags, 
+import {
+  Building2, Users, IndianRupee, Receipt, Bell, BarChart3, Settings,
+  LogOut, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight, Tags,
   Eye, CornerUpLeft, Search, Building
 } from 'lucide-react';
 import { useAuthStore } from '~/store/auth.store';
@@ -12,19 +12,19 @@ import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '~/components/ui/select';
 
 export default function AdminLayout() {
   const { user, initialized, signOut } = useAuthStore();
   const { selectedBuildingId, isImpersonating, setSelectedBuildingId, setImpersonating } = useSuperAdminStore();
   const { data: allBuildings = [] } = useAllBuildings();
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -70,55 +70,55 @@ export default function AdminLayout() {
       {/* Ghost Mode / Impersonation Banner */}
       {user.role === 'SUPER_ADMIN' && isImpersonating && (
         <div className="bg-slate-900 text-white px-3 py-2 flex items-center justify-between z-50 shadow-2xl shrink-0">
-           <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500 text-slate-900 rounded-full text-[9px] font-black uppercase tracking-tighter shrink-0">
-                <Eye className="w-3 h-3" /> <span className="hidden xs:inline">Ghost</span>
-              </div>
-              {!(location.pathname.includes('/admin/buildings/') && location.pathname.includes('/layout')) && (
-                <>
-                  <div className="h-4 w-[1px] bg-white/20 hidden sm:block" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/60 text-[10px] font-bold hidden lg:inline whitespace-nowrap">Managing:</span>
-                    <Select value={selectedBuildingId || 'none'} onValueChange={setSelectedBuildingId}>
-                       <SelectTrigger className="h-7 bg-white/10 border-none text-white w-[130px] sm:w-[180px] text-[10px] sm:text-xs font-bold ring-0 focus:ring-0">
-                          <SelectValue placeholder="Select Building" />
-                       </SelectTrigger>
-                       <SelectContent className="bg-slate-800 text-white border-slate-700">
-                          {allBuildings.map(b => (
-                            <SelectItem key={b.id} value={b.id} className="hover:bg-slate-700 focus:bg-slate-700 text-xs">
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                       </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-           </div>
-           <Button 
-            variant="ghost" 
-            size="sm" 
+          <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500 text-slate-900 rounded-full text-[9px] font-black uppercase tracking-tighter shrink-0">
+              <Eye className="w-3 h-3" /> <span className="hidden xs:inline">Ghost</span>
+            </div>
+            {!(location.pathname.includes('/admin/buildings/') && location.pathname.includes('/layout')) && (
+              <>
+                <div className="h-4 w-[1px] bg-white/20 hidden sm:block" />
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60 text-[10px] font-bold hidden lg:inline whitespace-nowrap">Managing:</span>
+                  <Select value={selectedBuildingId || 'none'} onValueChange={setSelectedBuildingId}>
+                    <SelectTrigger className="h-7 bg-white/10 border-none text-white w-[130px] sm:w-[180px] text-[10px] sm:text-xs font-bold ring-0 focus:ring-0">
+                      <SelectValue placeholder="Select Building" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 text-white border-slate-700">
+                      {allBuildings.map(b => (
+                        <SelectItem key={b.id} value={b.id} className="hover:bg-slate-700 focus:bg-slate-700 text-xs">
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleExitImpersonation}
             className="text-white hover:bg-white/10 h-7 text-[10px] font-black uppercase tracking-tight shrink-0 px-2 ml-1"
-           >
-              <CornerUpLeft className="w-3 h-3 mr-1 text-amber-400" /> 
-              <span className="hidden sm:inline">Exit to Super Admin</span>
-              <span className="inline sm:hidden">Exit</span>
-           </Button>
+          >
+            <CornerUpLeft className="w-3 h-3 mr-1 text-amber-400" />
+            <span className="hidden sm:inline">Exit to Super Admin</span>
+            <span className="inline sm:hidden">Exit</span>
+          </Button>
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Mobile Sidebar Backdrop */}
         {isMobileOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
             onClick={() => setIsMobileOpen(false)}
           />
         )}
 
         {/* Sidebar */}
-        <aside 
+        <aside
           className={cn(
             "bg-white border-r border-slate-200 flex flex-col shadow-sm z-50 transition-all duration-300 ease-in-out fixed md:relative h-full",
             isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
@@ -127,7 +127,7 @@ export default function AdminLayout() {
         >
           <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 shrink-0 shadow-sm transition-colors bg-white">
             <div className={cn("flex items-center gap-3 overflow-hidden", isCollapsed ? "md:justify-center md:gap-0" : "")}>
-              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+              <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
               {!isCollapsed && <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] md:block hidden mt-0.5">Lucky Luxury PG Services</span>}
               <span className="font-extrabold tracking-tight whitespace-nowrap text-[#072b7e] block md:hidden ml-3 mt-0.5">Lucky Luxury PG</span>
             </div>
@@ -148,8 +148,8 @@ export default function AdminLayout() {
                   className={cn(
                     "flex items-center gap-3 py-2.5 rounded-xl text-[13px] font-bold transition-all group",
                     isCollapsed ? "justify-center px-0" : "px-4",
-                    isActive 
-                      ? (user.role === 'SUPER_ADMIN' ? "bg-slate-900 shadow-lg shadow-slate-900/20 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100") 
+                    isActive
+                      ? (user.role === 'SUPER_ADMIN' ? "bg-slate-900 shadow-lg shadow-slate-900/20 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100")
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                   )}
                 >
@@ -162,8 +162,8 @@ export default function AdminLayout() {
           </nav>
 
           <div className="p-4 border-t border-slate-100 shrink-0 relative">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
               className="absolute -right-4 top-[-20px] hidden md:flex h-8 w-8 rounded-full border-slate-200 bg-white shadow-sm text-slate-500 hover:text-slate-700 z-50"
               onClick={() => setIsCollapsed(!isCollapsed)}
@@ -182,9 +182,9 @@ export default function AdminLayout() {
                 </div>
               )}
             </div>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className={cn(
                 "text-red-600 hover:text-red-700 hover:bg-red-50 font-bold text-xs h-10",
                 isCollapsed ? "md:w-full md:px-0 md:justify-center" : "w-full justify-start",
@@ -196,8 +196,8 @@ export default function AdminLayout() {
               {!isCollapsed && <span>Sign Out</span>}
             </Button>
 
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full justify-start flex md:hidden h-10 font-bold text-xs"
               onClick={signOut}
             >
@@ -216,12 +216,12 @@ export default function AdminLayout() {
                 <Menu className="w-6 h-6" />
               </Button>
               <div className="flex items-center gap-2">
-                <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0" src="/logo.png" />
+                <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
                 <span className="font-extrabold tracking-tight text-[#072b7e] mt-0.5">Lucky Luxury PG</span>
               </div>
             </div>
             {isImpersonating && (
-               <Badge className="bg-amber-500 text-slate-900 border-none font-black text-[9px] px-2 py-0.5">GHOST MODE</Badge>
+              <Badge className="bg-amber-500 text-slate-900 border-none font-black text-[9px] px-2 py-0.5">GHOST MODE</Badge>
             )}
           </header>
 

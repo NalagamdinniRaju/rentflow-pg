@@ -53,7 +53,7 @@ export default function BuildingsPage() {
   const [selectedBldg, setSelectedBldg] = useState<any>(null);
 
   // Add Building States
-  const [newBldg, setNewBldg] = useState({ name: '', line_one: '', city_id: '', floors: '1', seats_per_floor: '4' });
+  const [newBldg, setNewBldg] = useState({ name: '', line_one: '', city_id: '', monthly_rent: '', daily_rent: '', deposit_amount: '' });
   const [setts, setSetts] = useState({ monthly_rent: '', daily_rent: '', deposit_amount: '' });
   const [editAddr, setEditAddr] = useState({ line_one: '', city_id: '', pincode: '' });
 
@@ -66,13 +66,14 @@ export default function BuildingsPage() {
         line_one: newBldg.line_one,
         city_id: newBldg.city_id,
         admin_id: user!.id,
-        floors: Number(newBldg.floors),
-        seats_per_floor: Number(newBldg.seats_per_floor),
+        monthly_rent: newBldg.monthly_rent ? Number(newBldg.monthly_rent) : undefined,
+        daily_rent: newBldg.daily_rent ? Number(newBldg.daily_rent) : undefined,
+        deposit_amount: newBldg.deposit_amount ? Number(newBldg.deposit_amount) : undefined,
       });
 
       toast.success("Building created!");
       setOpenAdd(false);
-      setNewBldg({ name: '', line_one: '', city_id: '', floors: '1', seats_per_floor: '4' });
+      setNewBldg({ name: '', line_one: '', city_id: '', monthly_rent: '', daily_rent: '', deposit_amount: '' });
     } catch (e: any) {
       toast.error(e.message || "Failed to create building");
     }
@@ -169,16 +170,21 @@ export default function BuildingsPage() {
                      <Label>Full Address</Label>
                      <Input value={newBldg.line_one} onChange={e => setNewBldg({...newBldg, line_one: e.target.value})} placeholder="Area, Landmark" />
                    </div>
-                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-3">
                       <div className="space-y-2">
-                        <Label>Floors</Label>
-                        <Input type="number" value={newBldg.floors} onChange={e => setNewBldg({...newBldg, floors: e.target.value})} />
+                        <Label>Default Monthly Rent (₹)</Label>
+                        <Input type="number" placeholder="6000" value={newBldg.monthly_rent} onChange={e => setNewBldg({...newBldg, monthly_rent: e.target.value})} />
                       </div>
                       <div className="space-y-2">
-                        <Label>Seats / Floor</Label>
-                        <Input type="number" value={newBldg.seats_per_floor} onChange={e => setNewBldg({...newBldg, seats_per_floor: e.target.value})} />
+                        <Label>Default Daily Rent (₹)</Label>
+                        <Input type="number" placeholder="300" value={newBldg.daily_rent} onChange={e => setNewBldg({...newBldg, daily_rent: e.target.value})} />
+                      </div>
+                      <div className="space-y-2 col-span-2">
+                        <Label>Default Deposit (₹)</Label>
+                        <Input type="number" placeholder="5000" value={newBldg.deposit_amount} onChange={e => setNewBldg({...newBldg, deposit_amount: e.target.value})} />
                       </div>
                    </div>
+                   <p className="text-[10px] text-slate-500 italic mt-2">These are default values for flats. You can override per flat later.</p>
                 </div>
                 <DialogFooter className="flex-col sm:flex-row gap-2">
                   <Button variant="outline" onClick={() => setOpenAdd(false)} disabled={addingBuilding} className="w-full sm:w-auto">Cancel</Button>

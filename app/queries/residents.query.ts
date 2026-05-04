@@ -129,6 +129,8 @@ interface AddResidentVariables {
   name: string;
   phone: string;
   email: string | null;
+  gender?: 'Male' | 'Female' | 'Other';
+  age?: number;
   building_id: string;
   floor_id: string;
   room_id: string;
@@ -137,6 +139,7 @@ interface AddResidentVariables {
   monthly_rent: number | null;
   daily_rent: number | null;
   deposit_amount: number | null;
+  identification_image?: string | null;
 }
 
 export const useAddResident = createMutation<void, AddResidentVariables>({
@@ -156,6 +159,8 @@ export const useAddResident = createMutation<void, AddResidentVariables>({
       name: variables.name,
       phone: variables.phone,
       email: variables.email,
+      gender: variables.gender || null,
+      age: variables.age || null,
       building_id: variables.building_id,
       floor_id: variables.floor_id,
       room_id: variables.room_id,
@@ -164,6 +169,7 @@ export const useAddResident = createMutation<void, AddResidentVariables>({
       monthly_rent: variables.stay_type === 'MONTHLY' ? variables.monthly_rent : null,
       daily_rent: variables.stay_type === 'DAILY' ? variables.daily_rent : null,
       deposit_amount: variables.deposit_amount,
+      identification_image: variables.identification_image || null,
       status: 'ACTIVE',
       join_date: new Date().toISOString(),
     }).select('id').single();

@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center">
           <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
-            <img alt="Lucky Luxury Logo" className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0" src="/logo.png" />
+            <img alt="Lucky Luxury Logo" className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
             <span className="font-extrabold text-[#072b7e] text-xl sm:text-2xl tracking-tight block mt-0.5 text-center">Lucky Luxury PG Services</span>
           </div>
 

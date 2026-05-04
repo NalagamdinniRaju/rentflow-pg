@@ -32,6 +32,9 @@ export type Database = {
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           address_id: string | null;
+          monthly_rent: number | null;
+          daily_rent: number | null;
+          deposit_amount: number | null;
         };
       };
       floors: {
@@ -49,6 +52,11 @@ export type Database = {
           room_number: string;
           total_seats: number;
           custom_rent: number | null;
+          custom_monthly_rent: number | null;
+          custom_daily_rent: number | null;
+          custom_deposit_amount: number | null;
+          room_type_id: string | null;
+          sharing_type_id: string | null;
           created_at: string;
         };
       };
@@ -84,12 +92,15 @@ export type Database = {
           status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'VACATED' | 'UPCOMING';
           vacate_date: string | null;
           address: string | null;
+          emergency_contact_name: string | null;
           emergency_contact_phone: string | null;
           created_at: string;
           address_id: string | null;
+          updated_at: string | null;
           outstanding_balance: number;
           age: number | null;
           gender: 'Male' | 'Female' | 'Other' | null;
+          identification_image: string | null;
         };
       };
       payments: {
