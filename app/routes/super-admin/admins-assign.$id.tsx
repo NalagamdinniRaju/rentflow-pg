@@ -68,7 +68,7 @@ export default function AdminAssignmentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="glass-card p-4 rounded-2xl flex items-center gap-4">
         <Button 
           variant="ghost" 
           size="sm" 

@@ -91,7 +91,7 @@ export default function AdminRoomTypes() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center glass-card p-6 rounded-2xl">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Tags className="w-6 h-6 text-indigo-600" />

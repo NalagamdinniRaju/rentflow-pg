@@ -103,15 +103,16 @@ export default function AdminUpiSettings() {
 
   if (loadingBuilding) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
+        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+        <p className="text-white/70 text-sm font-medium">Loading settings...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
+      <div className="flex justify-between items-center glass-card p-6 rounded-2xl relative overflow-hidden">
         {isImpersonating && (
           <div className="absolute top-0 left-0 w-full h-1 bg-amber-500" />
         )}

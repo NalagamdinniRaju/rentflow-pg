@@ -31,14 +31,14 @@ export default function ResidentLayout() {
       h-screen + overflow-hidden on the root means the page itself never scrolls.
       Scrolling is handled inside ResidentDashboard via its own overflow-y-auto div.
     */
-    <div className="flex h-screen overflow-hidden bg-[#F1F5F9]">
+    <div className="flex h-screen overflow-hidden">
 
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden md:flex w-64 bg-[#0F172A] text-white flex-col shrink-0">
-        <div className="h-16 flex items-center px-6 border-b border-white/10 bg-white">
+      <aside className="hidden md:flex w-64 text-white flex-col shrink-0 glass-dark">
+        <div className="h-16 flex items-center px-6 border-b border-white/10 bg-linear-to-r from-indigo-900 to-[#0F172A]">
           <div className="flex items-center gap-3">
             <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
-            <span className="font-extrabold text-[#072b7e] tracking-tight text-sm mt-0.5">Lucky Luxury PG Services</span>
+            <span className="font-extrabold text-white tracking-tight text-sm mt-0.5">Lucky Luxury PG Services</span>
           </div>
         </div>
 
@@ -51,13 +51,13 @@ export default function ResidentLayout() {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all group',
                   isActive
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-sm'
                     : 'text-slate-400 hover:text-white hover:bg-white/10'
                 )}
               >
-                <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-white' : 'text-slate-400')} />
+                <Icon className={cn('w-4 h-4 shrink-0 transition-transform group-hover:scale-110', isActive ? 'text-teal-400' : 'text-slate-500')} />
                 {item.label}
               </Link>
             );
@@ -66,7 +66,7 @@ export default function ResidentLayout() {
 
         <div className="p-4 border-t border-white/10">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center font-semibold text-white uppercase border border-slate-700 shrink-0 text-sm">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-teal-500 to-blue-600 flex items-center justify-center font-semibold text-white uppercase border border-teal-400/30 shadow shrink-0 text-sm">
               {user.name?.charAt(0) || 'R'}
             </div>
             <div className="overflow-hidden">

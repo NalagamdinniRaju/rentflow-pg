@@ -19,6 +19,7 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
+  forceRefreshUser: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<UserRole>;
 }
 
@@ -66,6 +67,30 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     return roleData.role as UserRole;
+  },
+
+  forceRefreshUser: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role, name, phone')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      if (roleData) {
+        set({
+          user: {
+            id: session.user.id,
+            email: session.user.email ?? '',
+            role: roleData.role as UserRole,
+            name: roleData.name,
+            phone: roleData.phone,
+          },
+          initialized: true,
+          loading: false,
+        });
+      }
+    }
   },
 
   initialize: async () => {

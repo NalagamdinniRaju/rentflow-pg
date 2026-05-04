@@ -1,9 +1,10 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, UserPlus, Building2 } from 'lucide-react';
-import { useAdminBuildingsBasic } from '~/queries/buildings.query';
-import { useFloors, useRooms, useAvailableSeats } from '~/queries/layout.query';
+import { ArrowLeft, UserPlus, Building2, IndianRupee, Upload } from 'lucide-react';
+import { useAdminBuildingsBasic, useBuildingById } from '~/queries/buildings.query';
+import { useFloors, useRooms, useAvailableSeats, useRoomDetails } from '~/queries/layout.query';
+import { useManagementContext } from '~/hooks/use-management-context';
 import { useRoomTypes } from '~/queries/room-types.query';
 import { useAddResident } from '~/queries/residents.query';
 import { useAuthStore } from '~/store/auth.store';
@@ -194,7 +195,7 @@ export default function AddResidentPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex items-center gap-4 glass-card p-4 sm:p-6 rounded-2xl">
         <Button variant="ghost" size="icon" onClick={() => navigate('/admin/residents')} type="button">
           <ArrowLeft className="w-5 h-5 text-slate-500" />
         </Button>
@@ -207,7 +208,7 @@ export default function AddResidentPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 md:p-8">
+      <div className="glass-card rounded-2xl p-4 sm:p-6 md:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Section 1: Personal Info */}

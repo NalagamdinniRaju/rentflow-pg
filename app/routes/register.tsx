@@ -129,8 +129,8 @@ export default function RegisterPage() {
       sessionStorage.removeItem('register_step');
       sessionStorage.removeItem('register_form');
       sessionStorage.removeItem('register_agreed');
-      // Initialize auth store to capture the new session/role
-      await authStore.initialize();
+      // Fetch and set the authenticated user before navigating
+      await authStore.forceRefreshUser();
       toast.success("Registration successful!");
       navigate('/resident');
     } catch (err: any) {
