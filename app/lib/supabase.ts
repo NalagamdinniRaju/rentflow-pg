@@ -25,10 +25,16 @@ export type Database = {
           id: string;
           admin_id: string | null;
           name: string;
+          upi_id: string | null;
+          upi_name: string | null;
+          qr_code_url: string | null;
           location: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           address_id: string | null;
+          monthly_rent: number | null;
+          daily_rent: number | null;
+          deposit_amount: number | null;
         };
       };
       floors: {
@@ -46,6 +52,11 @@ export type Database = {
           room_number: string;
           total_seats: number;
           custom_rent: number | null;
+          custom_monthly_rent: number | null;
+          custom_daily_rent: number | null;
+          custom_deposit_amount: number | null;
+          room_type_id: string | null;
+          sharing_type_id: string | null;
           created_at: string;
         };
       };
@@ -81,24 +92,34 @@ export type Database = {
           status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'VACATED' | 'UPCOMING';
           vacate_date: string | null;
           address: string | null;
-          emergency_contact: string | null;
+          emergency_contact_name: string | null;
           emergency_contact_phone: string | null;
           created_at: string;
           address_id: string | null;
+          updated_at: string | null;
+          outstanding_balance: number;
+          age: number | null;
+          gender: 'Male' | 'Female' | 'Other' | null;
+          identification_image: string | null;
         };
       };
       payments: {
         Row: {
           id: string;
           resident_id: string;
-          month: number;
-          year: number;
+          month: string;
           amount: number;
-          status: 'PENDING' | 'PAID' | 'PARTIAL';
+          amount_paid: number;
+          balance: number;
+          status: 'PENDING' | 'SUBMITTED' | 'PAID' | 'PARTIALLY_PAID' | 'REJECTED';
           paid_date: string | null;
           payment_mode: 'Cash' | 'UPI' | 'Bank' | null;
           remarks: string | null;
           created_at: string;
+          transaction_ref?: string | null;
+          screenshot_url?: string | null;
+          submitted_at?: string | null;
+          paid_at?: string | null;
         };
       };
       expenses: {
@@ -151,6 +172,9 @@ export type Database = {
       system_settings: {
         Row: {
           id: string;
+          upi_id: string | null;
+          upi_name: string | null;
+          qr_code_url: string | null;
           default_monthly_rent: number;
           default_daily_rent: number;
           default_deposit: number;

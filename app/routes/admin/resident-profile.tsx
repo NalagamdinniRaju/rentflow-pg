@@ -1,79 +1,54 @@
-import { useState, useEffect } from 'react';
+// @ts-nocheck
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { 
   User, Phone, Mail, MapPin, Calendar, Building2, Bed, 
   IndianRupee, CreditCard, Clock, FileText, CheckCircle, 
-  XCircle, AlertCircle, ChevronLeft, Download, Send, LifeBuoy
+  XCircle, AlertCircle, ChevronLeft, Download, Send, LifeBuoy, Eye
 } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useResidentById, useUpdateResidentStatus } from '~/queries/residents.query';
+import { useResidentPayments } from '~/queries/payments.query';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
-import { getStatusColor, formatCurrency } from '~/lib/utils';
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger 
+} from '~/components/ui/dialog';
+import { getStatusColor, formatCurrency, cn } from '~/lib/utils';
 import { toast } from 'sonner';
 
 export default function ResidentProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [resident, setResident] = useState<any>(null);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isAadharModalOpen, setIsAadharModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (id) loadData();
-  }, [id]);
+  const { data: resident, isLoading: loadingResident } = useResidentById({
+    variables: { residentId: id || '' },
+    enabled: !!id,
+  });
 
-  async function loadData() {
+  const { data: payments = [], isLoading: loadingPayments } = useResidentPayments({
+    variables: { residentId: id || '' },
+    enabled: !!id,
+  });
+
+  const updateStatusMutation = useUpdateResidentStatus();
+
+  const loading = loadingResident || loadingPayments;
+
+  const handleApprove = async (residentId: string) => {
     try {
-      setLoading(true);
-      // Get resident details
-      const { data, error } = await supabase
-        .from('residents')
-        .select(`
-          *,
-          building:buildings(*, address:addresses(*, city:cities(*))),
-          floor:floors(*),
-          room:rooms(*),
-          seat:seats(*)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      setResident(data);
-
-      // Get payment history
-      const { data: payHistory } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('resident_id', id)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
-      
-      setPayments(payHistory || []);
-    } catch (error: any) {
-      toast.error(error.message);
-      navigate('/admin/residents');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleApprove = async (id: string) => {
-    try {
-      await supabase.from('residents').update({ status: 'ACTIVE' }).eq('id', id);
+      await updateStatusMutation.mutateAsync({ residentId, status: 'ACTIVE' });
       toast.success("Resident Approved Successfully!");
-      loadData();
     } catch (e: any) {
       toast.error(e.message || "Approval failed");
     }
   }
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (residentId: string) => {
     try {
-      await supabase.from('residents').update({ status: 'REJECTED' }).eq('id', id);
+      await updateStatusMutation.mutateAsync({ residentId, status: 'REJECTED' });
       toast.info("Resident Rejected");
-      loadData();
     } catch (e: any) {
       toast.error(e.message || "Action failed");
     }
@@ -138,7 +113,8 @@ export default function ResidentProfilePage() {
                 )}
               </div>
               <h2 className="text-xl font-bold text-slate-900">{resident.name}</h2>
-              <p className="text-slate-500 mb-4">{resident.phone}</p>
+              <p className="text-sm font-medium text-slate-500 mb-1">{resident.age || '-'} Yrs • {resident.gender || '-'}</p>
+              <p className="text-slate-400 text-sm mb-4 italic">{resident.phone}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 <Button variant="outline" size="sm" className="h-8">
                   <Phone className="w-3.5 h-3.5 mr-2" /> Call
@@ -165,11 +141,32 @@ export default function ResidentProfilePage() {
                   <span className="text-sm font-medium">AADHAR (Front)</span>
                 </div>
                 {resident.aadhar_photo ? (
-                  <a href={resident.aadhar_photo} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </a>
+                  <div className="flex gap-1">
+                    <Dialog open={isAadharModalOpen} onOpenChange={setIsAadharModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Aadhar Card - {resident.name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex justify-center items-center p-4 bg-slate-50 rounded-xl">
+                          <img 
+                            src={resident.aadhar_photo} 
+                            alt="Aadhar Card" 
+                            className="max-w-full h-auto rounded-lg shadow-sm"
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <a href={resident.aadhar_photo} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </a>
+                  </div>
                 ) : <span className="text-xs text-slate-400">Missing</span>}
               </div>
               <Button className="w-full" variant="outline" size="sm">
@@ -196,9 +193,17 @@ export default function ResidentProfilePage() {
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">Allocation</label>
-                  <p className="font-semibold text-slate-900 mt-1">
-                    Floor {resident.floor?.floor_number || '-'} / Room {resident.room?.room_number || '-'} / {resident.seat?.seat_number || '-'}
+                  <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">Flat Allocation</label>
+                  <p className="font-semibold text-slate-900 mt-1 flex flex-wrap items-center gap-2">
+                    F: {resident.floor?.floor_number || '-'} / Flat: {resident.room?.room_number || '-'} / B: {resident.seat?.seat_number || '-'}
+                    {resident.room?.room_types?.name && (
+                      <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border", resident.room.room_types.name.toLowerCase().includes('ac') ? 'bg-cyan-50 text-cyan-700 border-cyan-100' : 'bg-orange-50 text-orange-700 border-orange-100')}>
+                        {resident.room.room_types.name}
+                      </span>
+                    )}
+                    {resident.room?.sharing_types?.name && (
+                      <span className="text-xs text-slate-500 font-medium whitespace-nowrap">({resident.room.sharing_types.name})</span>
+                    )}
                   </p>
                 </div>
                 <div>

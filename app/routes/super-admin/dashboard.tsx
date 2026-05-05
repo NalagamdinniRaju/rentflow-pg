@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Building2, Users, MapPin, Activity } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useSuperAdminDashboard } from '~/queries/dashboard.query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
@@ -25,52 +24,24 @@ const occupancyData = [
 ];
 
 export default function SuperAdminDashboard() {
-  const [stats, setStats] = useState({
-    buildings: 0,
-    admins: 0,
-    locations: 0,
-    residents: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const [
-          { count: bCount },
-          { count: aCount },
-          { count: lCount },
-          { count: rCount }
-        ] = await Promise.all([
-          supabase.from('buildings').select('*', { count: 'exact', head: true }),
-          supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('role', 'ADMIN'),
-          supabase.from('cities').select('*', { count: 'exact', head: true }),
-          supabase.from('residents').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE')
-        ]);
-        
-        setStats({
-          buildings: bCount || 0,
-          admins: aCount || 0,
-          locations: lCount || 0,
-          residents: rCount || 0,
-        });
-      } catch (error) {
-        console.error('Failed to load stats', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadStats();
-  }, []);
+  const { data: stats, isLoading: loading } = useSuperAdminDashboard();
 
   const statCards = [
-    { label: 'Total Buildings', value: stats.buildings, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'PG Admins', value: stats.admins, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Active Residents', value: stats.residents, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Cities Covered', value: stats.locations, icon: MapPin, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Total Buildings', value: stats?.buildings || 0, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'PG Admins', value: stats?.admins || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Active Residents', value: stats?.residents || 0, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Cities Covered', value: stats?.locations || 0, icon: MapPin, color: 'text-amber-600', bg: 'bg-amber-50' },
   ];
 
-  if (loading) return <div>Loading dashboard...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="text-center">
+         <p className="text-slate-600 font-bold tracking-tight">Accessing Platform Core...</p>
+         <p className="text-slate-400 text-[10px] uppercase tracking-widest animate-pulse mt-1 font-black">Authorized Personnel Only</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

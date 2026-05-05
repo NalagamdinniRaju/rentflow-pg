@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router';
-import { Building2, LayoutDashboard, LogOut, IndianRupee } from 'lucide-react';
+import { Building2, LayoutDashboard, LogOut, IndianRupee, FileText, Shield } from 'lucide-react';
 import { useAuthStore } from '~/store/auth.store';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
@@ -22,6 +22,8 @@ export default function ResidentLayout() {
   const navItems = [
     { icon: LayoutDashboard, label: 'My Stay', path: '/resident' },
     { icon: IndianRupee, label: 'Payments', path: '/resident/payments' },
+    { icon: FileText, label: 'Terms & Conditions', path: '/terms-and-conditions' },
+    { icon: Shield, label: 'Privacy Policy', path: '/privacy-policy' },
   ];
 
   return (
@@ -33,12 +35,10 @@ export default function ResidentLayout() {
 
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex w-64 bg-[#0F172A] text-white flex-col shrink-0">
-        <div className="h-16 flex items-center px-6 border-b border-white/10">
+        <div className="h-16 flex items-center px-6 border-b border-white/10 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold tracking-tight text-sm">Resident Portal</span>
+            <img alt="Lucky Luxury Logo" className="h-10 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
+            <span className="font-extrabold text-[#072b7e] tracking-tight text-sm mt-0.5">Lucky Luxury PG Services</span>
           </div>
         </div>
 

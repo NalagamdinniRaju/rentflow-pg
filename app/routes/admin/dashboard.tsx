@@ -1,7 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router';
 import { Users, IndianRupee, UserCheck, AlertCircle, TrendingUp, TrendingDown, DollarSign, Wallet, Users2 } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
 import { useAuthStore } from '~/store/auth.store';
 import { formatCurrency } from '~/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
@@ -12,127 +10,32 @@ import {
   AreaChart, Area, PieChart, Pie, Cell, Legend 
 } from 'recharts';
 
+import { useAdminDashboard } from '~/queries/dashboard.query';
+
+import { useManagementContext } from '~/hooks/use-management-context';
+
 export default function AdminDashboard() {
   const { user } = useAuthStore();
-  const [stats, setStats] = useState({
+  const { buildingIds } = useManagementContext();
+  
+  const { data, isLoading: loading } = useAdminDashboard({
+    variables: { buildingIds },
+    enabled: buildingIds.length > 0,
+  });
+
+  const stats = data?.stats || {
     activeResidents: 0,
     pendingApprovals: 0,
     vacatedThisMonth: 0,
     collectionsThisMonth: 0,
     outstandings: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [revenueTrend, setRevenueTrend] = useState<any[]>([]);
-  const [occupancyTrend, setOccupancyTrend] = useState<any[]>([]);
-  const [occupancyData, setOccupancyData] = useState<any[]>([]);
+  };
+
+  const occupancyData = data?.occupancyData || [];
+  const revenueTrend = data?.revenueTrend || [];
+  const occupancyTrend = data?.occupancyTrend || [];
 
   const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
-
-  useEffect(() => {
-    if (!user) return;
-    async function loadDashboardData() {
-      try {
-        setLoading(true);
-        // 1. Get managed building IDs
-        const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', user!.id);
-        const bIds = bldgs?.map(b => b.id) || [];
-
-        if (bIds.length > 0) {
-          const now = new Date();
-          const curMonth = now.getMonth() + 1;
-          const curYear = now.getFullYear();
-
-          // Fetch all resident IDs for these buildings first
-          const { data: allResData } = await supabase.from('residents').select('id, join_date, vacate_date, status').in('building_id', bIds);
-          const rIds = allResData?.map(r => r.id) || [];
-
-          const [
-            { count: activeCount },
-            { count: pendingCount },
-            { count: vacatedCount },
-            { data: payments },
-            { data: outRes },
-            { data: allPayments },
-            { data: allExpenses }
-          ] = await Promise.all([
-            supabase.from('residents').select('*', { count: 'exact', head: true }).in('building_id', bIds).eq('status', 'ACTIVE'),
-            supabase.from('residents').select('*', { count: 'exact', head: true }).in('building_id', bIds).eq('status', 'PENDING'),
-            supabase.from('residents').select('*', { count: 'exact', head: true }).in('building_id', bIds).eq('status', 'VACATED').gte('vacate_date', new Date(now.getFullYear(), now.getMonth(), 1).toISOString()),
-            supabase.from('payments').select('amount').in('resident_id', rIds).eq('month', curMonth).eq('year', curYear).eq('status', 'PAID'),
-            supabase.from('payments').select('amount').in('resident_id', rIds).eq('month', curMonth).eq('year', curYear).eq('status', 'PENDING'),
-            supabase.from('payments').select('amount, month, year').in('resident_id', rIds).eq('status', 'PAID'),
-            supabase.from('expenses').select('amount, date').in('building_id', bIds)
-          ]);
-
-          const allResidents = allResData || [];
-
-
-          const totalCollected = payments?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-          const totalOutstanding = outRes?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-
-          setStats({
-            activeResidents: activeCount || 0,
-            pendingApprovals: pendingCount || 0,
-            vacatedThisMonth: vacatedCount || 0,
-            collectionsThisMonth: totalCollected,
-            outstandings: totalOutstanding,
-          });
-
-          setOccupancyData([
-            { name: 'Active', value: activeCount || 0 },
-            { name: 'Waiting', value: pendingCount || 0 },
-            { name: 'Vacated', value: vacatedCount || 0 },
-          ]);
-
-          // --- Calculate Revenue vs Expenses Trend (Last 6 Months) ---
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const trendArray = [];
-          for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const m = d.getMonth() + 1;
-            const y = d.getFullYear();
-            
-            const monthRevenue = allPayments?.filter(p => p.month === m && p.year === y).reduce((acc, p) => acc + Number(p.amount), 0) || 0;
-            const monthExpenses = allExpenses?.filter(e => {
-              const ed = new Date(e.date);
-              return ed.getMonth() + 1 === m && ed.getFullYear() === y;
-            }).reduce((acc, e) => acc + Number(e.amount), 0) || 0;
-
-            trendArray.push({
-              month: months[m - 1],
-              revenue: monthRevenue,
-              expenses: monthExpenses
-            });
-          }
-          setRevenueTrend(trendArray);
-
-          // --- Calculate Occupancy Trend ---
-          const occTrend = [];
-          for (let i = 3; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7));
-            const activeAtTime = allResidents?.filter(r => {
-              const jd = r.join_date ? new Date(r.join_date) : null;
-              const vd = r.vacate_date ? new Date(r.vacate_date) : null;
-              if (!jd) return false;
-              // Was joined and hasn't vacated yet at that point
-              return jd <= d && (!vd || vd > d);
-            }).length || 0;
-
-            occTrend.push({
-              week: `W${4-i}`,
-              active: activeAtTime
-            });
-          }
-          setOccupancyTrend(occTrend);
-        }
-      } catch (error) {
-        console.error('Failed to load dashboard data', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDashboardData();
-  }, [user]);
 
   const statCards = [
     { label: 'Active Tenants', value: stats.activeResidents, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+12%', up: true },
@@ -141,7 +44,17 @@ export default function AdminDashboard() {
     { label: 'Outstanding Bills', value: formatCurrency(stats.outstandings), icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', trend: '-2.4%', up: false },
   ];
 
-  if (loading) return <div className="p-20 text-center animate-pulse text-slate-400">Loading Analytics...</div>;
+  if (loading && !!user?.id) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <div className="text-center">
+           <p className="text-slate-600 font-bold">Synchronizing Executive Data...</p>
+           <p className="text-slate-400 text-[10px] uppercase tracking-widest animate-pulse mt-1 font-bold">Secure connection established</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

@@ -1,23 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Users, Building2, MapPin, IndianRupee, Bed, Phone, FileText, CheckCircle, AlertTriangle, ArrowRight, XCircle, Download, FileSpreadsheet, Pencil, Filter, Calendar, Plus } from 'lucide-react';
 import { Link } from 'react-router';
-import { supabase } from '~/lib/supabase';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Badge } from '~/components/ui/badge';
 import { useAuthStore } from '~/store/auth.store';
-import { getStatusColor, formatCurrency } from '~/lib/utils';
+import { getStatusColor, formatCurrency, cn } from '~/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '~/components/ui/dialog';
 import { Label } from '~/components/ui/label';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import { useManagementContext } from '~/hooks/use-management-context';
+import { useAdminResidents, useUpdateResidentStatus } from '~/queries/residents.query';
+
 export default function ResidentsPage() {
   const { user } = useAuthStore();
-  const [residents, setResidents] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { buildingIds, isImpersonating } = useManagementContext();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
 
@@ -25,12 +25,19 @@ export default function ResidentsPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
-  useEffect(() => {
-    if (!user) return;
-    loadData();
-  }, [user]);
+  // Queries
+  const { data: residents = [], isLoading: loadingResidents } = useAdminResidents({
+    variables: { buildingIds },
+    enabled: buildingIds.length > 0,
+  });
 
-  useEffect(() => {
+  const loading = buildingIds.length > 0 && loadingResidents;
+
+  // Mutations
+  const { mutateAsync: updateStatus } = useUpdateResidentStatus();
+
+  // Derived state for filtering
+  const filtered = useMemo(() => {
     let result = residents;
     if (filterStatus !== 'ALL') {
       result = result.filter(r => r.status === filterStatus);
@@ -40,50 +47,18 @@ export default function ResidentsPage() {
       result = result.filter(r => 
         r.name?.toLowerCase().includes(s) || 
         r.phone?.toLowerCase().includes(s) ||
-        r.room?.room_number?.toLowerCase().includes(s)
+        r.room?.room_number?.toLowerCase().includes(s) ||
+        r.room?.room_types?.name?.toLowerCase().includes(s) ||
+        r.room?.sharing_types?.name?.toLowerCase().includes(s)
       );
     }
-    setFiltered(result);
+    return result;
   }, [search, filterStatus, residents]);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', user!.id);
-      const bIds = bldgs?.map(b => b.id) || [];
-      if (bIds.length === 0) {
-        setResidents([]);
-        return;
-      }
-
-      const { data } = await supabase
-        .from('residents')
-        .select(`
-          *,
-          building:buildings(name),
-          floor:floors(floor_number),
-          room:rooms(room_number),
-          seat:seats(seat_number)
-        `)
-        .in('building_id', bIds)
-        .order('created_at', { ascending: false });
-
-      if (data) {
-        setResidents(data);
-        setFiltered(data);
-      }
-    } catch (error) {
-       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleApprove = async (id: string) => {
     try {
-      await supabase.from('residents').update({ status: 'ACTIVE' }).eq('id', id);
+      await updateStatus({ residentId: id, status: 'ACTIVE' });
       toast.success("Approved!");
-      loadData();
     } catch (e) {
       toast.error("Action failed");
     }
@@ -91,9 +66,8 @@ export default function ResidentsPage() {
 
   const handleReject = async (id: string) => {
     try {
-      await supabase.from('residents').update({ status: 'REJECTED' }).eq('id', id);
+      await updateStatus({ residentId: id, status: 'REJECTED' });
       toast.info("Rejected");
-      loadData();
     } catch (e) {
       toast.error("Action failed");
     }
@@ -108,10 +82,11 @@ export default function ResidentsPage() {
 
   const exportCSV = () => {
     const data = getExportData();
-    const headers = ["Name", "Phone", "Email", "Status", "Building", "Room", "Bed", "Stay Type", "Rent", "Join Date"];
+    const headers = ["Name", "Age", "Gender", "Phone", "Email", "Status", "Building", "Flat", "Flat Type", "Sharing", "Bed", "Stay Type", "Rent", "Join Date"];
     const rows = data.map(r => [
-      r.name, r.phone, r.email || '-', r.status, r.building?.name || '-', 
-      r.room?.room_number || '-', r.seat?.seat_number || '-', r.stay_type,
+      r.name, r.age || '-', r.gender || '-', r.phone, r.email || '-', r.status, r.building?.name || '-', 
+      r.room?.room_number || '-', r.room?.room_types?.name || '-', 
+      r.room?.sharing_types?.name || '-', r.seat?.seat_number || '-', r.stay_type,
       r.stay_type === 'DAILY' ? r.daily_rent : r.monthly_rent,
       new Date(r.created_at).toLocaleDateString()
     ]);
@@ -139,19 +114,21 @@ export default function ResidentsPage() {
      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
      
      const tableData = data.map(r => [
-       r.name, r.phone, r.status, r.building?.name || '-', 
+       r.name, `${r.age || '-'}/${r.gender?.charAt(0) || '-'}`, r.phone, r.status, r.building?.name || '-', 
        `${r.room?.room_number || '-'}/${r.seat?.seat_number || '-'}`,
+       r.room?.room_types?.name || '-',
+       r.room?.sharing_types?.name || '-',
        r.stay_type === 'DAILY' ? `Rs.${r.daily_rent || 0}` : `Rs.${r.monthly_rent || 0}`,
        new Date(r.created_at).toLocaleDateString()
      ]);
 
      autoTable(doc, {
        startY: 35,
-       head: [['Name', 'Phone', 'Status', 'Building', 'Room/Bed', 'Rent', 'Join Date']],
+       head: [['Name', 'A/G', 'Phone', 'Status', 'Building', 'Flat/Bed', 'Type', 'Sharing', 'Rent', 'Join Date']],
        body: tableData,
        theme: 'grid',
        headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255] },
-       styles: { fontSize: 8 }
+       styles: { fontSize: 7 }
      });
 
      doc.save(`residents_report_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -244,8 +221,9 @@ export default function ResidentsPage() {
             <thead>
               <tr className="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-100">
                 <th className="px-6 py-4">Resident</th>
+                <th className="px-6 py-4">Age / Sex</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Building / Room</th>
+                <th className="px-6 py-4">Building / Flat</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -264,16 +242,32 @@ export default function ResidentsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                       <span className="text-sm font-bold text-slate-700">{r.age || '-'} Yrs</span>
+                       <span className="text-[10px] text-slate-400 uppercase font-black">{r.gender || '-'}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <Badge variant={r.status === 'ACTIVE' ? 'success' : r.status === 'PENDING' ? 'secondary' : r.status === 'VACATED' ? 'info' : r.status === 'REJECTED' ? 'danger' : 'default'}>
                        {r.status}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-0.5">
                        <span className="text-sm font-semibold text-slate-900 flex items-center gap-1">
                           <Building2 className="w-3 h-3 text-slate-400"/> {r.building?.name || 'N/A'}
                        </span>
-                       <span className="text-xs text-slate-500 font-medium">Room {r.room?.room_number || '-'} / Bed {r.seat?.seat_number || '-'}</span>
+                       <div className="flex items-center gap-1.5 flex-wrap">
+                         <span className="text-xs text-slate-500 font-medium whitespace-nowrap">F: {r.room?.room_number || '-'} / B: {r.seat?.seat_number || '-'}</span>
+                         {r.room?.room_types?.name && (
+                           <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tight", r.room.room_types.name.toLowerCase().includes('ac') ? 'bg-cyan-50 text-cyan-700 border border-cyan-100' : 'bg-orange-50 text-orange-700 border border-orange-100')}>
+                             {r.room.room_types.name}
+                           </span>
+                         )}
+                         {r.room?.sharing_types?.name && (
+                           <span className="text-[10px] text-slate-400 font-medium">({r.room.sharing_types.name})</span>
+                         )}
+                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">

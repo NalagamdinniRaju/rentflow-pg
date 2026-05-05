@@ -1,151 +1,168 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Building2, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { Building2, Eye, EyeOff, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+import {
+  useRegistrationBuildings,
+  useRegistrationFloors,
+  useRegistrationRooms,
+  useRegistrationSeats,
+  useRegistrationStates,
+  useRegistrationCities,
+  useRegistrationRoomTypes,
+  useRegistrationSharingTypes,
+  useRegisterUser
+} from '~/queries/register.query';
 
-interface State { id: string; name: string; }
-interface City { id: string; name: string; state_id: string; }
-interface Building { id: string; name: string; }
+import { useAuthStore } from '~/store/auth.store';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const authStore = useAuthStore();
+  const [step, setStep] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+    const s = sessionStorage.getItem('register_step');
+    return s ? parseInt(s, 10) : 1;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPwd, setShowPwd] = useState(false);
-  const [states, setStates] = useState<State[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [buildings, setBuildings] = useState<Building[]>([]);
-  const [floors, setFloors] = useState<any[]>([]);
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [seats, setSeats] = useState<any[]>([]);
-
-  const [form, setForm] = useState({
-    name: '', phone: '', email: '',
-    building_id: '', floor_id: '', room_id: '', seat_id: '',
-    line_one: '', line_two: '', state_id: '', city_id: '', pincode: '',
-    password: '', confirm_password: '',
+  const [agreed, setAgreed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('register_agreed') === 'true';
   });
 
-  useEffect(() => {
-    supabase.from('states').select('id,name').order('name').then(({ data }) => setStates(data || []));
-    supabase.from('buildings').select('id,name').eq('status', 'ACTIVE').order('name').then(({ data }) => setBuildings(data || []));
-  }, []);
+  const [aadharFile, setAadharFile] = useState<File | null>(null);
+  const [aadharPreview, setAadharPreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (form.state_id) {
-      supabase.from('cities').select('id,name,state_id').eq('state_id', form.state_id).order('name').then(({ data }) => setCities(data || []));
+  const [form, setForm] = useState(() => {
+    const defaultForm = {
+      name: '', phone: '', email: '',
+      building_id: '', floor_id: '', room_type_id: '', sharing_type_id: '', room_id: '', seat_id: '',
+      line_one: '', line_two: '', state_id: '', city_id: '', pincode: '',
+      password: '', confirm_password: '',
+      age: '', gender: '', stay_type: 'MONTHLY'
+    };
+    if (typeof window === 'undefined') return defaultForm;
+    try {
+      const saved = sessionStorage.getItem('register_form');
+      return saved ? { ...defaultForm, ...JSON.parse(saved) } : defaultForm;
+    } catch {
+      return defaultForm;
     }
-  }, [form.state_id]);
+  });
 
-  useEffect(() => {
-    if (form.building_id) {
-      supabase.from('floors').select('id, floor_number').eq('building_id', form.building_id).then(({ data }) => setFloors(data || []));
-    }
-  }, [form.building_id]);
+  useEffect(() => { sessionStorage.setItem('register_step', step.toString()); }, [step]);
+  useEffect(() => { sessionStorage.setItem('register_agreed', agreed.toString()); }, [agreed]);
+  useEffect(() => { sessionStorage.setItem('register_form', JSON.stringify(form)); }, [form]);
 
-  useEffect(() => {
-    if (form.floor_id) {
-      supabase.from('rooms').select('id, room_number').eq('floor_id', form.floor_id).then(({ data }) => setRooms(data || []));
-    }
-  }, [form.floor_id]);
+  const { data: states = [] } = useRegistrationStates();
+  const { data: buildings = [] } = useRegistrationBuildings();
+  const { data: roomTypes = [] } = useRegistrationRoomTypes();
+  const { data: sharingTypes = [] } = useRegistrationSharingTypes();
 
-  useEffect(() => {
-    if (form.room_id) {
-      supabase.from('seats').select('id, seat_number').eq('room_id', form.room_id).eq('status', 'AVAILABLE').then(({ data }) => setSeats(data || []));
-    }
-  }, [form.room_id]);
+  const { data: cities = [] } = useRegistrationCities({
+    variables: { stateId: form.state_id },
+    enabled: !!form.state_id,
+  });
+
+  const { data: floors = [] } = useRegistrationFloors({
+    variables: { buildingId: form.building_id },
+    enabled: !!form.building_id,
+  });
+
+  const { data: rooms = [] } = useRegistrationRooms({
+    variables: {
+      floorId: form.floor_id,
+      roomTypeId: form.room_type_id,
+      sharingTypeId: form.sharing_type_id
+    },
+    enabled: !!form.floor_id,
+  });
+
+  const { data: seats = [] } = useRegistrationSeats({
+    variables: { roomId: form.room_id },
+    enabled: !!form.room_id,
+  });
 
   const update = useCallback((field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev: any) => ({ ...prev, [field]: value }));
   }, []);
+
+  const selectedBuilding = buildings.find(b => b.id === form.building_id);
+  const selectedRoom = rooms.find(r => r.id === form.room_id);
+
+  const effectiveMonthly = selectedRoom?.custom_monthly_rent != null
+    ? Number(selectedRoom.custom_monthly_rent)
+    : (Number(selectedBuilding?.monthly_rent) || 6000);
+
+  const effectiveDaily = selectedRoom?.custom_daily_rent != null
+    ? Number(selectedRoom.custom_daily_rent)
+    : (Number(selectedBuilding?.daily_rent) || 300);
+
+  const effectiveDeposit = selectedRoom?.custom_deposit_amount != null
+    ? Number(selectedRoom.custom_deposit_amount)
+    : (Number(selectedBuilding?.deposit_amount) || 5000);
+
+  const rentSource = selectedRoom?.custom_monthly_rent != null || selectedRoom?.custom_daily_rent != null || selectedRoom?.custom_deposit_amount != null
+    ? 'flat-custom'
+    : 'building-default';
+
+  const { mutateAsync: registerUser } = useRegisterUser();
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.confirm_password) { setError('Passwords do not match'); return; }
-    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return; }
+    if (form.password !== form.confirm_password) return setError("Passwords do not match");
 
     setLoading(true);
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: { data: { name: form.name } }
-      });
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Registration failed');
-
-      const userId = authData.user.id;
-
-      // Create address
-      const { data: addrData, error: addrError } = await supabase
-        .from('addresses')
-        .insert({ line_one: form.line_one, line_two: form.line_two || null, pincode: form.pincode, city_id: form.city_id })
-        .select('id')
-        .maybeSingle();
-      if (addrError) throw addrError;
-      if (!addrData) throw new Error("Failed connecting to address layout");
-
-      // Create user_role
-      await supabase.from('user_roles').insert({
-        user_id: userId,
-        role: 'RESIDENT',
-        name: form.name,
-        phone: form.phone,
-        email: form.email,
-      });
-
-      // Create resident (PENDING approval)
-      await supabase.from('residents').insert({
-        user_id: userId,
-        building_id: form.building_id,
-        floor_id: form.floor_id,
-        room_id: form.room_id,
-        seat_id: form.seat_id,
-        name: form.name,
-        phone: form.phone,
-        email: form.email,
-        status: 'PENDING',
-        address_id: addrData.id,
-      });
-
-      navigate('/login?registered=true');
+      await registerUser({
+        ...form,
+        aadhar_file: aadharFile,
+        deposit_amount: effectiveDeposit,
+        monthly_rent: effectiveMonthly,
+        daily_rent: effectiveDaily
+      } as any);
+      sessionStorage.removeItem('register_step');
+      sessionStorage.removeItem('register_form');
+      sessionStorage.removeItem('register_agreed');
+      // Initialize auth store to capture the new session/role
+      await authStore.initialize();
+      toast.success("Registration successful!");
+      navigate('/resident');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [form, navigate]);
+  }, [form, aadharFile, navigate, registerUser, authStore]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-900">Lucky Luxury PG</span>
+          <Link to="/" className="inline-flex items-center justify-center gap-3 mb-6">
+            <img alt="Lucky Luxury Logo" className="h-14 md:h-16 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
+            <span className="text-xl md:text-2xl font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG Services</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">Register for a PG Account</h1>
-          <p className="text-slate-500 mt-2">Fill in your details to apply for a room</p>
+          <p className="text-slate-500 mt-2">Fill in your details to apply for a flat</p>
         </div>
 
         {/* Steps */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          {[1, 2, 3].map(s => (
+          {[1, 2, 3, 4].map(s => (
             <div key={s} className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${s <= step ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                 {s}
               </div>
-              {s < 3 && <div className={`h-0.5 w-16 transition-all ${s < step ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+              {s < 4 && <div className={`h-0.5 w-12 transition-all ${s < step ? 'bg-blue-600' : 'bg-slate-200'}`} />}
             </div>
           ))}
         </div>
@@ -176,6 +193,23 @@ export default function RegisterPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <Label>Gender *</Label>
+                    <Select value={form.gender} onValueChange={v => update('gender', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Age *</Label>
+                    <Input id="age" type="number" placeholder="24" value={form.age} onChange={e => update('age', e.target.value)} required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label>Select Building *</Label>
                     <Select value={form.building_id} onValueChange={v => { update('building_id', v); update('floor_id', ''); update('room_id', ''); update('seat_id', ''); }}>
                       <SelectTrigger><SelectValue placeholder="— Select PG —" /></SelectTrigger>
@@ -196,25 +230,115 @@ export default function RegisterPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Room *</Label>
-                    <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id}>
-                      <SelectTrigger><SelectValue placeholder="Select Room" /></SelectTrigger>
+                    <Label>Flat Type (Optional)</Label>
+                    <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
+                      <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
                       <SelectContent>
-                        {rooms.map(r => <SelectItem key={r.id} value={r.id}>{r.room_number}</SelectItem>)}
+                        <SelectItem value="none">Any Type</SelectItem>
+                        {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
+                    <Label>Sharing (Optional)</Label>
+                    <Select value={form.sharing_type_id} onValueChange={v => { update('sharing_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
+                      <SelectTrigger><SelectValue placeholder="Any Sharing" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Any Sharing</SelectItem>
+                        {sharingTypes.map(st => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Flat *</Label>
+                    <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id || rooms.length === 0}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          !form.floor_id
+                            ? "Select Floor First"
+                            : rooms.length === 0
+                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} flats available`
+                              : "Select Flat"
+                        } />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rooms.map(r => <SelectItem key={r.id} value={r.id}>{r.room_number}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {form.floor_id && rooms.length === 0 && (
+                      <p className="text-[10px] text-red-500 font-medium">
+                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} and {sharingTypes.find(st => st.id === form.sharing_type_id)?.name || 'any'} configuration on this floor.
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
                     <Label>Seat/Bed *</Label>
-                    <Select value={form.seat_id} onValueChange={v => update('seat_id', v)} disabled={!form.room_id}>
-                      <SelectTrigger><SelectValue placeholder={seats.length ? "Select Bed" : "No beds available"} /></SelectTrigger>
+                    <Select value={form.seat_id} onValueChange={v => update('seat_id', v)} disabled={!form.room_id || seats.length === 0}>
+                      <SelectTrigger><SelectValue placeholder={!form.room_id ? "Select Flat First" : seats.length ? "Select Bed" : "No beds available"} /></SelectTrigger>
                       <SelectContent>
                         {seats.map(s => <SelectItem key={s.id} value={s.id}>{s.seat_number}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <Button type="button" className="w-full" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id} onClick={() => setStep(2)}>
+
+                <div className="space-y-2">
+                  <Label>Stay Type *</Label>
+                  <Select value={form.stay_type} onValueChange={v => update('stay_type', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select Stay Type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MONTHLY">Monthly Basis</SelectItem>
+                      <SelectItem value="DAILY">Daily Basis (Short Stay)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Rent Summary Card */}
+                {form.room_id && (
+                  <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mt-2">
+                    <h3 className="text-sm font-bold text-emerald-900 mb-2 border-b border-emerald-200/50 pb-2 flex items-center gap-2">
+                      Rent Summary
+                    </h3>
+
+                    <div className="mb-3 mt-1">
+                      {rentSource === 'flat-custom' ? (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            Custom Flat Rent
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-slate-200 text-slate-700 border border-slate-300 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            Building Default
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <p className="text-[10px] text-emerald-600 font-semibold mb-1 uppercase tracking-wider">
+                          {form.stay_type === 'MONTHLY' ? 'Monthly Rent' : 'Daily Rent'}
+                        </p>
+                        <p className="text-lg lg:text-xl font-bold text-slate-800">
+                          ₹{form.stay_type === 'MONTHLY' ? effectiveMonthly : effectiveDaily}
+                          <span className="text-[10px] font-normal text-slate-400 ml-1">/{form.stay_type === 'MONTHLY' ? 'mo' : 'day'}</span>
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <p className="text-[10px] text-emerald-600 font-semibold mb-1 uppercase tracking-wider">Security Deposit</p>
+                        <p className="text-lg lg:text-xl font-bold text-slate-800">₹{effectiveDeposit}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button type="button" className="w-full mt-4" size="lg" disabled={!form.name || !form.phone || !form.email || !form.seat_id || !form.age || !form.gender || !form.stay_type} onClick={() => setStep(2)}>
                   Next Step (Address) →
                 </Button>
               </div>
@@ -263,8 +387,75 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 3: Password */}
+            {/* Step 3: Aadhar Upload */}
             {step === 3 && (
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-bold text-slate-900">Upload Aadhar Card</h2>
+                  <p className="text-sm text-slate-500">Please upload a clear photo of your Aadhar card for verification.</p>
+                </div>
+
+                <div className="flex flex-col items-center justify-center">
+                  <label
+                    htmlFor="aadhar-upload"
+                    className={`relative w-full aspect-[1.6/1] max-w-md border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer transition-all overflow-hidden
+                      ${aadharPreview ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'}`}
+                  >
+                    {aadharPreview ? (
+                      <>
+                        <img src={aadharPreview} alt="Aadhar Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 text-white text-xs font-semibold">
+                            Change Document
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-400">
+                          <Upload className="w-8 h-8" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-semibold text-slate-900">Click to upload or drag and drop</p>
+                          <p className="text-xs text-slate-500 mt-1">JPG, PNG or PDF (max. 5MB)</p>
+                        </div>
+                      </>
+                    )}
+                    <input
+                      id="aadhar-upload"
+                      type="file"
+                      className="hidden"
+                      accept="image/*,.pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAadharFile(file);
+                          const url = URL.createObjectURL(file);
+                          setAadharPreview(url);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+                  <div className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                    <span className="text-[10px] font-bold">!</span>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    <strong>Important:</strong> Ensure all details like Name, Date of Birth, and Aadhar Number are clearly visible. Registration may be rejected if the document is blurry.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(2)}>← Back</Button>
+                  <Button type="button" className="flex-1" size="lg" disabled={!aadharFile} onClick={() => setStep(4)}>Continue →</Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Password */}
+            {step === 4 && (
               <div className="space-y-5">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">Create Password</h2>
                 <div className="space-y-2">
@@ -283,9 +474,23 @@ export default function RegisterPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
                   <strong>Note:</strong> Your application will be reviewed by the PG Admin. You'll receive access once approved.
                 </div>
+
+                <div className="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    className="mt-1 flex-shrink-0 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                  />
+                  <Label htmlFor="terms" className="text-sm text-slate-600 leading-tight pt-0.5 cursor-pointer">
+                    I agree to the <Link to="/terms-and-conditions" className="text-[#072b7e] font-bold hover:underline">Terms & Conditions</Link> and <Link to="/privacy-policy" className="text-[#072b7e] font-bold hover:underline">Privacy Policy</Link>.
+                  </Label>
+                </div>
+
                 <div className="flex gap-3">
-                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(2)}>← Back</Button>
-                  <Button type="submit" className="flex-1" size="lg" loading={loading}>Register</Button>
+                  <Button type="button" variant="outline" className="flex-1" size="lg" onClick={() => setStep(3)}>← Back</Button>
+                  <Button type="submit" className="flex-1" size="lg" loading={loading} disabled={!agreed || !form.password || !form.confirm_password}>Register</Button>
                 </div>
               </div>
             )}

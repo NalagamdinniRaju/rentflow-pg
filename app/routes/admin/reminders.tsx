@@ -1,71 +1,77 @@
-import { useState, useEffect } from 'react';
-import { Send, BellRing, Phone, IndianRupee, AlertTriangle, Users } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
+import { useState } from 'react';
+import { Send, BellRing, Phone, IndianRupee, AlertTriangle, Users, Loader2 } from 'lucide-react';
 import { useAuthStore } from '~/store/auth.store';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
 import { formatCurrency } from '~/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { toast } from 'sonner';
+import { supabase } from '~/lib/supabase';
+
+import { useAdminBuildingIds } from '~/queries/buildings.query';
+import { useDefaulters } from '~/queries/payments.query';
 
 export default function RemindersPage() {
   const { user } = useAuthStore();
-  const [defaulters, setDefaulters] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString());
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendingBulk, setSendingBulk] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    loadData();
-  }, [user, filterMonth, filterYear]);
+  const { data: buildingIds = [] } = useAdminBuildingIds({
+    variables: { adminId: user?.id || '' },
+    enabled: !!user?.id,
+  });
 
-  async function loadData() {
-    setLoading(true);
+  const { data: defaulters = [], isLoading: loading, refetch } = useDefaulters({
+    variables: {
+      buildingIds,
+      month: parseInt(filterMonth),
+      year: parseInt(filterYear),
+    },
+    enabled: buildingIds.length > 0,
+  });
+
+  const sendReminder = async (residentId: string, residentName: string) => {
     try {
-      const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', user!.id);
-      const bIds = bldgs?.map(b => b.id) || [];
-      if (bIds.length === 0) {
-        setDefaulters([]);
-        return;
-      }
+      setSendingId(residentId);
+      const { data, error } = await supabase.functions.invoke('whatsapp-reminders', {
+        body: { resident_id: residentId }
+      });
 
-      // We only care about PENDING status payments for this target month and year
-      const m = parseInt(filterMonth);
-      const y = parseInt(filterYear);
+      if (error) throw error;
 
-      const resBase = await supabase.from('residents').select('id').in('building_id', bIds);
-      const resIds = resBase.data?.map(r => r.id) || [];
-
-      if(resIds.length > 0) {
-        const { data } = await supabase
-          .from('payments')
-          .select(`
-             *,
-             resident:residents(name, phone, room:rooms(room_number), building:buildings(name))
-          `)
-          .in('resident_id', resIds)
-          .eq('status', 'PENDING')
-          .eq('month', m)
-          .eq('year', y);
-        
-        setDefaulters(data || []);
+      if (data?.details?.[0]?.status === 'sent') {
+        toast.success(`Reminder sent to ${residentName}`);
+      } else if (data?.details?.[0]?.status === 'skipped') {
+        toast.info(`Skipped: ${data.details[0].reason}`);
       } else {
-        setDefaulters([]);
+        toast.error(`Failed to send reminder to ${residentName}`);
       }
-    } catch (error: unknown) {
-       if(error instanceof Error) console.error(error.message);
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to trigger reminder");
     } finally {
-      setLoading(false);
+      setSendingId(null);
     }
-  }
-
-  const sendReminder = async (id: string, name: string) => {
-    toast.success(`Payment reminder sent via SMS to ${name}`);
   };
 
-  const sendBulkReminder = () => {
-    toast.success(`Bulk payment reminder sent to ${defaulters.length} resident(s).`);
+  const sendBulkReminder = async () => {
+    try {
+      setSendingBulk(true);
+      const { data, error } = await supabase.functions.invoke('whatsapp-reminders', {
+        body: { bulk: true }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Bulk reminder batch processed! Sent: ${data.processed}`);
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to trigger bulk reminders");
+    } finally {
+      setSendingBulk(false);
+    }
   };
 
   const totalOutstanding = defaulters.reduce((a,c) => a+Number(c.amount), 0);
@@ -97,8 +103,13 @@ export default function RemindersPage() {
              </Select>
            </div>
            
-           <Button className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 shadow-md text-white" disabled={defaulters.length === 0} onClick={sendBulkReminder}>
-             <Send className="w-4 h-4 mr-2" /> Remind All
+           <Button 
+            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 shadow-md text-white font-bold" 
+            disabled={defaulters.length === 0 || sendingBulk} 
+            onClick={sendBulkReminder}
+           >
+             {sendingBulk ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+             Remind All
            </Button>
         </div>
       </div>
@@ -150,7 +161,7 @@ export default function RemindersPage() {
                      <h3 className="font-bold text-lg text-slate-900">{p.resident?.name || 'Unknown'}</h3>
                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-slate-500">
                        <span className="flex items-center gap-1 font-medium bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">
-                         {p.resident?.building?.name} - {p.resident?.room?.room_number}
+                         {p.resident?.building?.name} - Flat {p.resident?.room?.room_number}
                        </span>
                        <span className="flex items-center gap-1 text-blue-600 font-medium">
                          <Phone className="w-3.5 h-3.5" /> {p.resident?.phone}
@@ -168,8 +179,18 @@ export default function RemindersPage() {
                        <Button variant="outline" size="icon" className="text-blue-600 hover:bg-blue-50 hover:border-blue-200" onClick={() => window.open(`tel:${p.resident?.phone}`)}>
                           <Phone className="w-4 h-4" />
                        </Button>
-                       <Button variant="default" className="text-white bg-amber-500 hover:bg-amber-600 shadow-md" onClick={() => sendReminder(p.id, p.resident?.name)}>
-                          <Send className="w-4 h-4 mr-2" /> Notify
+                        <Button 
+                        variant="default" 
+                        className="text-white bg-amber-500 hover:bg-amber-600 shadow-md font-bold" 
+                        disabled={sendingId === p.resident?.id || !p.resident?.id}
+                        onClick={() => {
+                          if (p.resident?.id && p.resident?.name) {
+                            sendReminder(p.resident.id, p.resident.name);
+                          }
+                        }}
+                       >
+                          {sendingId === p.resident?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                          Notify
                        </Button>
                      </div>
                   </div>

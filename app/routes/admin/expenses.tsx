@@ -1,7 +1,6 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Receipt, Plus, Building2, Calendar as CalIcon, IndianRupee } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
 import { useAuthStore } from '~/store/auth.store';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
@@ -21,6 +20,9 @@ import {
     FormLabel,
     FormMessage,
 } from "~/components/ui/form";
+
+import { useAdminBuildingsBasic } from '~/queries/buildings.query';
+import { useAdminExpenses, useAddExpense } from '~/queries/expenses.query';
 
 const expenseSchema = z.object({
   building_id: z.string().min(1, "Please select a building"),
@@ -43,9 +45,6 @@ type ExpenseFormValues = z.infer<typeof expenseSchema>;
 
 export default function ExpensesPage() {
   const { user } = useAuthStore();
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [buildings, setBuildings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const form = useForm<ExpenseFormValues>({
@@ -62,51 +61,39 @@ export default function ExpensesPage() {
 
   const expenseType = form.watch('type');
 
-  useEffect(() => {
-    if (!user) return;
-    loadData();
-  }, [user]);
+  // Queries
+  const { data: buildings = [] } = useAdminBuildingsBasic({
+    variables: { adminId: user!.id },
+    enabled: !!user?.id
+  });
 
-  async function loadData() {
-    setLoading(true);
-    try {
-      const { data: bldgs } = await supabase.from('buildings').select('id, name').eq('admin_id', user!.id);
-      if (bldgs) setBuildings(bldgs);
+  const buildingIds = buildings.map(b => b.id);
 
-      const bIds = bldgs?.map(b => b.id) || [];
-      if (bIds.length === 0) {
-        setExpenses([]);
-        return;
-      }
+  const { data: expenses = [], isLoading: loadingExpenses } = useAdminExpenses({
+    variables: { buildingIds },
+    enabled: buildingIds.length > 0
+  });
 
-      const { data } = await supabase
-        .from('expenses')
-        .select(`*, building:buildings(name)`)
-        .in('building_id', bIds)
-        .order('date', { ascending: false });
+  const loading = loadingExpenses;
 
-      setExpenses(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Mutations
+  const { mutateAsync: addExpense, isPending: addingExpense } = useAddExpense();
 
   const onSubmit = async (values: ExpenseFormValues) => {
     try {
-      const finalType = values.type === 'OTHER' ? values.other_type : values.type;
-      await supabase.from('expenses').insert({
+      const finalType = values.type === 'OTHER' ? values.other_type || 'OTHER' : values.type;
+      
+      await addExpense({
         building_id: values.building_id,
         type: finalType,
         amount: values.amount,
         date: values.date,
         description: values.description || null
       });
+
       toast.success("Expense logged successfully");
       setDialogOpen(false);
       form.reset();
-      loadData();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to log expense");

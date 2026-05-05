@@ -1,7 +1,8 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Users, Plus, ShieldCheck, Phone, Eye, EyeOff, Building2 } from 'lucide-react';
-import { supabase, supabaseUrl } from '~/lib/supabase';
+import { useAdmins, useCreateAdmin, useToggleAdminStatus, useAdminBuildingsByAdminId } from '~/queries/admins.query';
+import { useNavigate } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Card, CardContent } from '~/components/ui/card';
@@ -31,62 +32,37 @@ const adminSchema = z.object({
 type AdminFormValues = z.infer<typeof adminSchema>;
 
 export default function AdminsPage() {
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
   const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
-  const [adminBuildings, setAdminBuildings] = useState<any[]>([]);
-  const [loadingBuildings, setLoadingBuildings] = useState(false);
+
+  const { data: admins = [], isLoading: loading } = useAdmins();
+  const { data: adminBuildings = [], isLoading: loadingBuildings } = useAdminBuildingsByAdminId({
+    variables: { adminId: selectedAdminId || '' },
+    enabled: !!selectedAdminId,
+  });
+
+  const createAdminProps = useCreateAdmin();
+  const toggleAdminProps = useToggleAdminStatus();
 
   const form = useForm<AdminFormValues>({
     resolver: zodResolver(adminSchema),
     defaultValues: { name: '', phone: '', email: '', password: '' }
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const { data } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('role', 'ADMIN')
-        .order('created_at', { ascending: false });
-
-      if (data) setAdmins(data);
-      console.log("Admin Data", data)
-    } catch (err: unknown) {
-      if (err instanceof Error) console.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const onSubmit = async (values: AdminFormValues) => {
     try {
-      // Use Supabase Edge Function to create admin without sending verification email
-      const resp = await fetch(`${supabaseUrl}/functions/v1/create_admin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          password: values.password,
-          phone: values.phone
-        })
+      await createAdminProps.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        phone: values.phone
       });
-      const result = await resp.json();
-      if (!resp.ok) throw new Error(result.error || 'Failed to create admin');
-
       toast.success('Admin created successfully');
       setOpen(false);
       form.reset();
-      loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create admin';
       toast.error(msg);
@@ -95,31 +71,15 @@ export default function AdminsPage() {
 
   const toggleStatus = async (userId: string, currentStatus: string) => {
     try {
-      await supabase
-        .from('user_roles')
-        .update({ status: currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })
-        .eq('user_id', userId);
+      await toggleAdminProps.mutateAsync({ userId, currentStatus });
       toast.success("Admin status updated");
-      loadData();
     } catch (error: unknown) {
       if (error instanceof Error) toast.error(error.message);
     }
   };
 
-  const loadAdminDetails = async (userId: string) => {
+  const loadAdminDetails = (userId: string) => {
     setSelectedAdminId(userId);
-    setLoadingBuildings(true);
-    try {
-      const { data } = await supabase
-        .from('buildings')
-        .select('name, location, status')
-        .eq('admin_id', userId);
-      setAdminBuildings(data || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingBuildings(false);
-    }
   };
 
   return (
@@ -294,6 +254,14 @@ export default function AdminsPage() {
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                <Button
+                  variant="outline"
+                  className="flex-1 text-amber-600 bg-amber-50 hover:bg-amber-100 hover:text-amber-700 border-0"
+                  onClick={() => navigate(`/super-admin/admins-assign/${admin.user_id}`)}
+                >
+                  <Building2 className="w-4 h-4 mr-2" /> Assign
+                </Button>
 
                 <Button
                   variant={admin.status === 'ACTIVE' ? 'outline' : 'default'}

@@ -1,76 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BarChart3, TrendingUp, IndianRupee, Receipt } from 'lucide-react';
-import { supabase } from '~/lib/supabase';
 import { useAuthStore } from '~/store/auth.store';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import { formatCurrency, MONTH_NAMES } from '~/lib/utils';
+import { formatCurrency } from '~/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+
+import { useFinancialReports } from '~/queries/dashboard.query';
+import { useManagementContext } from '~/hooks/use-management-context';
 
 export default function ReportsPage() {
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const { buildingIds } = useManagementContext();
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
   
-  const [reportData, setReportData] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!user) return;
-    loadData();
-  }, [user, filterYear]);
-
-  async function loadData() {
-    setLoading(true);
-    try {
-      const year = parseInt(filterYear);
-      const { data: bldgs } = await supabase.from('buildings').select('id').eq('admin_id', user!.id);
-      const bIds = bldgs?.map(b => b.id) || [];
-      
-      if (bIds.length === 0) {
-        setReportData([]);
-        return;
-      }
-
-      const resBase = await supabase.from('residents').select('id').in('building_id', bIds);
-      const resIds = resBase.data?.map(r => r.id) || [];
-
-      // Get all PAID payments for the year
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('month, amount')
-        .in('resident_id', resIds)
-        .eq('year', year)
-        .eq('status', 'PAID');
-
-      // Get all expenses for the year
-      const { data: expenses } = await supabase
-        .from('expenses')
-        .select('date, amount')
-        .in('building_id', bIds)
-        // PostgreSQL standard date substring trick, simple but works since format is YYYY-MM-DD
-        .gte('date', `${year}-01-01`)
-        .lte('date', `${year}-12-31`);
-
-      // Aggregate by month
-      const monthlyData = MONTH_NAMES.map((name, index) => {
-        const m = index + 1;
-        const income = payments?.filter(p => p.month === m).reduce((a,c) => a+Number(c.amount), 0) || 0;
-        const out = expenses?.filter(e => new Date(e.date).getMonth() + 1 === m).reduce((a,c) => a+Number(c.amount), 0) || 0;
-        return {
-          month: name,
-          shortMonth: name.slice(0, 3),
-          income,
-          expense: out,
-          profit: income - out
-        };
-      });
-
-      setReportData(monthlyData);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data: reportData = [], isLoading: loading } = useFinancialReports({
+    variables: { 
+      buildingIds, 
+      year: parseInt(filterYear) 
+    },
+    enabled: buildingIds.length > 0
+  });
 
   const yearlyIncome = reportData.reduce((a,c) => a + c.income, 0);
   const yearlyExpense = reportData.reduce((a,c) => a + c.expense, 0);

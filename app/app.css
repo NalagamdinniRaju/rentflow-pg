@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -12,6 +13,61 @@
   --color-brand-700: #1d4ed8;
   --color-brand-800: #1e40af;
   --color-brand-900: #1e3a8a;
+
+  --color-surface-container-high: #e6e8ee;
+  --color-primary-fixed: #dce1ff;
+  --color-on-tertiary-container: #a0bae6;
+  --color-secondary: #475d94;
+  --color-surface: #f7f9ff;
+  --color-inverse-primary: #b6c4ff;
+  --color-on-secondary-fixed-variant: #2e457a;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-fixed: #d5e3ff;
+  --color-secondary-container: #aac0fe;
+  --color-primary: #072b7e;
+  --color-outline: #757683;
+  --color-tertiary-fixed-dim: #aec8f4;
+  --color-on-tertiary-fixed: #001b3c;
+  --color-surface-variant: #e0e2e8;
+  --color-surface-dim: #d8dae0;
+  --color-on-secondary-fixed: #001947;
+  --color-error: #ba1a1a;
+  --color-on-background: #181c20;
+  --color-on-secondary-container: #374d83;
+  --color-error-container: #ffdad6;
+  --color-surface-bright: #f7f9ff;
+  --color-on-primary-container: #a2b5ff;
+  --color-on-primary: #ffffff;
+  --color-surface-tint: #4059ac;
+  --color-inverse-surface: #2d3135;
+  --color-on-surface-variant: #444651;
+  --color-on-primary-fixed-variant: #254193;
+  --color-outline-variant: #c5c5d3;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-primary-container: #284395;
+  --color-secondary-fixed-dim: #b1c5ff;
+  --color-surface-container-highest: #e0e2e8;
+  --color-on-error: #ffffff;
+  --color-on-surface: #181c20;
+  --color-inverse-on-surface: #eff1f7;
+  --color-on-secondary: #ffffff;
+  --color-secondary-fixed: #dae2ff;
+  --color-on-error-container: #93000a;
+  --color-on-primary-fixed: #00164f;
+  --color-surface-container-low: #f1f3f9;
+  --color-on-tertiary-fixed-variant: #2e476d;
+  --color-background: #f7f9ff;
+  --color-surface-container: #eceef4;
+  --color-surface-container-lowest: #ffffff;
+  --color-tertiary: #183358;
+  --color-tertiary-container: #314a70;
+
+  --font-headline: "Manrope", var(--font-sans);
+  --font-body: "Manrope", var(--font-sans);
+  --font-label: "Manrope", var(--font-sans);
+  --font-manrope: "Manrope", var(--font-sans);
+
+  --shadow-premium: 0 8px 40px -4px rgba(24, 28, 32, 0.04);
 }
 
 html, body {
