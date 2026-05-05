@@ -78,7 +78,7 @@ export default function RemindersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass-card p-6 rounded-2xl gap-4">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <BellRing className="w-6 h-6 text-amber-500" />
@@ -115,7 +115,7 @@ export default function RemindersPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-         <Card className="bg-amber-50 border-amber-200 shadow-none">
+         <Card className="border-amber-200 shadow-none" style={{ background: '#fffbeb' }}>
             <CardContent className="p-6 flex items-center gap-6">
                <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shrink-0 border border-amber-200">
                  <AlertTriangle className="w-8 h-8" />
@@ -126,7 +126,7 @@ export default function RemindersPage() {
                </div>
             </CardContent>
          </Card>
-         <Card className="bg-slate-800 border-none text-white">
+         <Card className="border-none text-white" style={{ background: '#1e293b' }}>
             <CardContent className="p-6 flex items-center gap-6">
                <div className="w-16 h-16 bg-slate-700 text-amber-400 rounded-2xl flex items-center justify-center shrink-0 border border-slate-600">
                  <Users className="w-8 h-8" />

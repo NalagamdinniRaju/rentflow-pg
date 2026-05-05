@@ -49,7 +49,7 @@ import {
     useBulkDeleteSeats,
     type FlatConfig,
 } from "~/queries/buildings.query";
-import { useRoomTypes, useSharingTypes } from "~/queries/room-types.query";
+import { useRoomTypes } from "~/queries/room-types.query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { useAuthStore } from "~/store/auth.store";
 
@@ -120,7 +120,6 @@ export default function ManageBuildingLayout() {
     });
 
     const { data: roomTypes = [] } = useRoomTypes();
-    const { data: sharingTypes = [] } = useSharingTypes();
 
     const getEffectiveRent = (room: any) => {
         const hasCustom = room.custom_monthly_rent != null || room.custom_daily_rent != null || room.custom_deposit_amount != null;
@@ -384,13 +383,22 @@ export default function ManageBuildingLayout() {
 
     const loading = loadingBuilding || loadingFloors;
 
-    if (loading) return <div className="p-20 text-center text-slate-400">Loading Layout...</div>;
-    if (!building) return <div className="p-20 text-center text-red-400">Building not found or failed to load.</div>;
+    if (loading) return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+        <p className="text-white font-medium">Loading Layout...</p>
+      </div>
+    );
+    if (!building) return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-white/70 font-medium">Building not found or failed to load.</p>
+      </div>
+    );
 
     return (
         <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-card p-4 sm:p-6 rounded-2xl gap-3 sm:gap-4">
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <Button
                         variant="ghost"
@@ -469,16 +477,6 @@ export default function ManageBuildingLayout() {
                                                         <SelectContent>
                                                             <SelectItem value="none">None</SelectItem>
                                                             {roomTypes.map((rt: any) => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <Label className="text-[11px]">Sharing</Label>
-                                                    <Select value={flat.sharingTypeId || ''} onValueChange={(v) => { updateFlat(idx, { sharingTypeId: v }); const st = sharingTypes.find((s: any) => s.id === v); if (st) updateFlat(idx, { sharingTypeId: v, beds: st.capacity }); }}>
-                                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Sharing..." /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="none">Custom</SelectItem>
-                                                            {sharingTypes.map((st: any) => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -950,29 +948,6 @@ export default function ManageBuildingLayout() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Sharing Type</Label>
-                                <Select
-                                    value={selectedSharingType}
-                                    onValueChange={(v) => {
-                                        setSelectedSharingType(v);
-                                        const st = sharingTypes.find((s) => s.id === v);
-                                        if (st) setSeatsInRoom(String(st.capacity));
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select sharing..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">Custom Capacity</SelectItem>
-                                        {sharingTypes.map((st) => (
-                                            <SelectItem key={st.id} value={st.id}>
-                                                {st.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Beds per Flat</Label>
@@ -980,13 +955,7 @@ export default function ManageBuildingLayout() {
                                 type="number"
                                 value={seatsInRoom}
                                 onChange={(e) => setSeatsInRoom(e.target.value)}
-                                disabled={selectedSharingType !== "" && selectedSharingType !== "none"}
                             />
-                            {selectedSharingType !== "" && selectedSharingType !== "none" && (
-                                <p className="text-[10px] text-blue-500 italic">
-                                    Locked to {sharingTypes.find((s) => s.id === selectedSharingType)?.name} capacity
-                                </p>
-                            )}
                         </div>
 
                         {/* Per-Flat Rent and Deposit Configuration */}
@@ -1058,29 +1027,6 @@ export default function ManageBuildingLayout() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Sharing Type</Label>
-                                <Select
-                                    value={selectedSharingType}
-                                    onValueChange={(v) => {
-                                        setSelectedSharingType(v);
-                                        const st = sharingTypes.find((s) => s.id === v);
-                                        if (st) setSeatsInRoom(String(st.capacity));
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Single, Double..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">None</SelectItem>
-                                        {sharingTypes.map((st) => (
-                                            <SelectItem key={st.id} value={st.id}>
-                                                {st.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
                         <div className="space-y-2 mt-4 pt-2 border-t">
                             <Label>Number of Seats (Beds)</Label>
@@ -1088,13 +1034,7 @@ export default function ManageBuildingLayout() {
                                 type="number"
                                 value={seatsInRoom}
                                 onChange={(e) => setSeatsInRoom(e.target.value)}
-                                disabled={selectedSharingType !== "" && selectedSharingType !== "none"}
                             />
-                            {selectedSharingType !== "" && selectedSharingType !== "none" && (
-                                <p className="text-[10px] text-blue-500 italic">
-                                    Locked to {sharingTypes.find((s) => s.id === selectedSharingType)?.name} capacity
-                                </p>
-                            )}
                         </div>
 
                         {/* Per-Flat Rent and Deposit Configuration */}

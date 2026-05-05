@@ -56,26 +56,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex flex-col justify-center px-4 py-6 sm:py-12 sm:px-6 lg:px-8 overflow-x-hidden">
-      <div className="w-full max-w-md mx-auto">
+    <div
+      className="min-h-screen min-h-[100dvh] flex flex-col justify-center px-4 py-6 sm:py-12 sm:px-6 lg:px-8 overflow-x-hidden relative overflow-y-hidden"
+      style={{ background: 'linear-gradient(135deg, #041a5c 0%, #072b7e 45%, #1a3fa0 75%, #2d5be3 100%)' }}
+    >
+      {/* Decorative glass orbs */}
+      <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-16 w-[28rem] h-[28rem] rounded-full bg-blue-300/15 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/2 left-1/4 w-72 h-72 -translate-y-1/2 rounded-full bg-indigo-400/10 blur-3xl" />
+
+      <div className="w-full max-w-md mx-auto relative z-10">
         <div className="flex justify-center flex-col items-center">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <img alt="Lucky Luxury Logo" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
-            <span className="font-extrabold text-[#072b7e] text-lg sm:text-xl md:text-2xl tracking-tight block mt-0.5 text-center leading-tight">Lucky Luxury PG Services</span>
+            <span className="font-extrabold text-white text-lg sm:text-xl md:text-2xl tracking-tight block mt-0.5 text-center leading-tight">Lucky Luxury PG Services</span>
           </div>
-          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-slate-600">
+          <p className="mt-2 text-center text-sm text-blue-100">
             Or{' '}
-            <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/register" className="font-semibold text-white hover:text-blue-200 underline underline-offset-2 transition-colors">
               register as a new resident
             </Link>
           </p>
         </div>
 
         <div className="mt-6 sm:mt-8 w-full">
-          <div className="bg-white py-6 px-4 shadow-xl shadow-slate-200/50 rounded-2xl sm:px-8 border border-slate-100">
+          <div className="bg-white/95 backdrop-blur-sm py-6 px-4 shadow-2xl shadow-black/25 rounded-3xl sm:px-8 border border-white/60">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
                 <FormField

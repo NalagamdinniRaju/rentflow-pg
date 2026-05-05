@@ -97,11 +97,15 @@ export default function EditResidentPage() {
     }
   };
 
-  if (loading) return <div className="p-20 text-center">Loading...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex items-center justify-between glass-card p-6 rounded-2xl">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/admin/residents')}>
             <ArrowLeft className="w-5 h-5 text-slate-500" />
@@ -116,7 +120,7 @@ export default function EditResidentPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
+      <div className="glass-card rounded-2xl p-6 sm:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">

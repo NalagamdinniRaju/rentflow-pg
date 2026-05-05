@@ -91,7 +91,7 @@ export default function ResidentDashboard() {
       <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center mb-6 border border-amber-100">
         <Clock className="w-10 h-10 text-amber-500" />
       </div>
-      <h2 className="text-2xl font-semibold text-slate-900 mb-3">Application pending</h2>
+      <h2 className="text-2xl font-semibold text-white mb-3">Application Pending</h2>
       <div className="bg-white border border-slate-100 rounded-2xl p-5 w-full mb-6 text-left space-y-4">
         <p className="text-sm text-slate-500 leading-relaxed">
           Hey {resident.name.split(' ')[0]}, your application is being reviewed by the admin.
@@ -135,7 +135,7 @@ export default function ResidentDashboard() {
   const initials = resident.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('');
 
   return (
-    <div className="flex flex-col h-full bg-[#F1F5F9]">
+    <div className="flex flex-col h-full">
 
       {/* ── Dark header ── */}
       <div className="bg-[#0F172A] px-5 pt-4 pb-5 flex items-center justify-between shrink-0">
@@ -228,7 +228,7 @@ export default function ResidentDashboard() {
                     purple: 'bg-indigo-50 text-indigo-500'
                  };
                  return (
-                   <div key={idx} className="bg-white rounded-[22px] border border-slate-100 p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
+                   <div key={idx} className="glass-card rounded-[22px] p-4 flex flex-col gap-3 hover:shadow-lg transition-shadow">
                       <div className={`w-9 h-9 ${colors[item.color as keyof typeof colors]} rounded-xl flex items-center justify-center`}>
                         <Icon className="w-4 h-4" />
                       </div>
@@ -243,7 +243,7 @@ export default function ResidentDashboard() {
             </div>
 
             {/* Profile Progress Card */}
-            <div className="bg-white border border-slate-100 rounded-[28px] p-5 shadow-sm overflow-hidden relative">
+            <div className="bg-white/10 border border-white/10 rounded-[28px] p-5 shadow-sm overflow-hidden relative">
                {/* Small background indicator for progress */}
                <div className="absolute top-0 right-0 p-4">
                   <div className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${isProfileComplete ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
@@ -324,7 +324,7 @@ export default function ResidentDashboard() {
           <div className="md:col-span-12 lg:col-span-4 flex flex-col gap-4">
             
             {/* Property details - Slimmer for sidebar */}
-            <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="glass-card rounded-[24px] overflow-hidden flex flex-col">
                <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-400" />
@@ -373,7 +373,7 @@ export default function ResidentDashboard() {
             payments.map(p => {
               const isPaid = p.status === 'PAID';
               return (
-                <div key={p.id} className="bg-white border border-slate-100 rounded-[20px] p-3.5 flex items-center gap-3">
+                <div key={p.id} className="glass-card rounded-[20px] p-3.5 flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isPaid ? 'bg-emerald-50' : 'bg-red-50'}`}>
                     <IndianRupee className={`w-[15px] h-[15px] ${isPaid ? 'text-emerald-500' : 'text-red-500'}`} />
                   </div>

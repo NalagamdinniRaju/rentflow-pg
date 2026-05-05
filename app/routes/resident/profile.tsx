@@ -105,7 +105,7 @@ export default function ResidentProfilePage() {
   const initials = resident?.name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('') || 'R';
 
   return (
-    <div className="flex flex-col h-full bg-[#F1F5F9]">
+    <div className="flex flex-col h-full">
       {/* ── Dark Header (Same as Dashboard) ── */}
       <div className="bg-[#0F172A] px-5 py-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
@@ -123,7 +123,7 @@ export default function ResidentProfilePage() {
       <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-4 pb-10">
         
         {/* Personal Info Card */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-5 flex flex-col gap-4 shadow-sm">
+        <div className="glass-card rounded-[20px] p-5 flex flex-col gap-4">
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
@@ -180,7 +180,7 @@ export default function ResidentProfilePage() {
         </div>
 
         {/* Home/PG Info Card */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-5 flex flex-col gap-4 shadow-sm">
+        <div className="glass-card rounded-[20px] p-5 flex flex-col gap-4">
            <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
                <Building2 className="w-4 h-4" />
@@ -217,7 +217,7 @@ export default function ResidentProfilePage() {
         </div>
 
         {/* Documents Card */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-5 flex flex-col gap-4 shadow-sm">
+        <div className="glass-card rounded-[20px] p-5 flex flex-col gap-4">
            <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500">
                <FileText className="w-4 h-4" />
@@ -285,7 +285,7 @@ export default function ResidentProfilePage() {
         </div>
 
         {/* Emergency Card */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-5 flex flex-col gap-4 shadow-sm">
+        <div className="glass-card rounded-[20px] p-5 flex flex-col gap-4">
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-red-50 rounded-xl flex items-center justify-center text-red-500">

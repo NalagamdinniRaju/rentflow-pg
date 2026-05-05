@@ -14,7 +14,6 @@ import {
   useRegistrationStates,
   useRegistrationCities,
   useRegistrationRoomTypes,
-  useRegistrationSharingTypes,
   useRegisterUser
 } from '~/queries/register.query';
 
@@ -63,7 +62,6 @@ export default function RegisterPage() {
   const { data: states = [] } = useRegistrationStates();
   const { data: buildings = [] } = useRegistrationBuildings();
   const { data: roomTypes = [] } = useRegistrationRoomTypes();
-  const { data: sharingTypes = [] } = useRegistrationSharingTypes();
 
   const { data: cities = [] } = useRegistrationCities({
     variables: { stateId: form.state_id },
@@ -131,8 +129,8 @@ export default function RegisterPage() {
       sessionStorage.removeItem('register_step');
       sessionStorage.removeItem('register_form');
       sessionStorage.removeItem('register_agreed');
-      // Initialize auth store to capture the new session/role
-      await authStore.initialize();
+      // Fetch and set the authenticated user before navigating
+      await authStore.forceRefreshUser();
       toast.success("Registration successful!");
       navigate('/resident');
     } catch (err: any) {
@@ -143,31 +141,38 @@ export default function RegisterPage() {
   }, [form, aadharFile, navigate, registerUser, authStore]);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div
+      className="min-h-screen relative py-10 px-4 overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #041a5c 0%, #072b7e 45%, #1a3fa0 75%, #2d5be3 100%)' }}
+    >
+      {/* Decorative glass orbs */}
+      <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-16 w-[28rem] h-[28rem] rounded-full bg-blue-300/15 blur-3xl" />
+
+      <div className="max-w-2xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center gap-3 mb-6">
             <img alt="Lucky Luxury Logo" className="h-14 md:h-16 w-auto object-contain shrink-0 rounded-md bg-white" src="/logo.png" />
-            <span className="text-xl md:text-2xl font-extrabold text-[#072b7e] tracking-tight mt-0.5">Lucky Luxury PG Services</span>
+            <span className="text-xl md:text-2xl font-extrabold text-white tracking-tight mt-0.5">Lucky Luxury PG Services</span>
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">Register for a PG Account</h1>
-          <p className="text-slate-500 mt-2">Fill in your details to apply for a flat</p>
+          <h1 className="text-3xl font-bold text-white">Register for a PG Account</h1>
+          <p className="text-blue-100 mt-2">Fill in your details to apply for a flat</p>
         </div>
 
         {/* Steps */}
         <div className="flex items-center justify-center gap-3 mb-8">
           {[1, 2, 3, 4].map(s => (
             <div key={s} className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${s <= step ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${s <= step ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/40' : 'bg-white/20 text-white/70'}`}>
                 {s}
               </div>
-              {s < 4 && <div className={`h-0.5 w-12 transition-all ${s < step ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+              {s < 4 && <div className={`h-0.5 w-12 transition-all ${s < step ? 'bg-blue-400' : 'bg-white/20'}`} />}
             </div>
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl border border-white/60 shadow-2xl shadow-black/25 p-8">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
               {error}
@@ -191,7 +196,7 @@ export default function RegisterPage() {
                   <Label htmlFor="email">Email Address *</Label>
                   <Input id="email" type="email" placeholder="you@example.com" value={form.email} onChange={e => update('email', e.target.value)} required />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Gender *</Label>
                     <Select value={form.gender} onValueChange={v => update('gender', v)}>
@@ -208,7 +213,7 @@ export default function RegisterPage() {
                     <Input id="age" type="number" placeholder="24" value={form.age} onChange={e => update('age', e.target.value)} required />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Select Building *</Label>
                     <Select value={form.building_id} onValueChange={v => { update('building_id', v); update('floor_id', ''); update('room_id', ''); update('seat_id', ''); }}>
@@ -228,29 +233,17 @@ export default function RegisterPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Flat Type (Optional)</Label>
-                    <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
-                      <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any Type</SelectItem>
-                        {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Sharing (Optional)</Label>
-                    <Select value={form.sharing_type_id} onValueChange={v => { update('sharing_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
-                      <SelectTrigger><SelectValue placeholder="Any Sharing" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any Sharing</SelectItem>
-                        {sharingTypes.map(st => <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label>Flat Type (Optional)</Label>
+                  <Select value={form.room_type_id} onValueChange={v => { update('room_type_id', v); update('room_id', ''); update('seat_id', ''); }}>
+                    <SelectTrigger><SelectValue placeholder="Any Type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Any Type</SelectItem>
+                      {roomTypes.map(rt => <SelectItem key={rt.id} value={rt.id}>{rt.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Flat *</Label>
                     <Select value={form.room_id} onValueChange={v => { update('room_id', v); update('seat_id', ''); }} disabled={!form.floor_id || rooms.length === 0}>
@@ -259,7 +252,7 @@ export default function RegisterPage() {
                           !form.floor_id
                             ? "Select Floor First"
                             : rooms.length === 0
-                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} ${sharingTypes.find(st => st.id === form.sharing_type_id)?.name || ''} flats available`
+                              ? `No ${roomTypes.find(rt => rt.id === form.room_type_id)?.name || ''} flats available`
                               : "Select Flat"
                         } />
                       </SelectTrigger>
@@ -269,7 +262,7 @@ export default function RegisterPage() {
                     </Select>
                     {form.floor_id && rooms.length === 0 && (
                       <p className="text-[10px] text-red-500 font-medium">
-                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} and {sharingTypes.find(st => st.id === form.sharing_type_id)?.name || 'any'} configuration on this floor.
+                        No flats available for {roomTypes.find(rt => rt.id === form.room_type_id)?.name || 'any'} type on this floor.
                       </p>
                     )}
                   </div>
@@ -497,9 +490,9 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center text-slate-500 text-sm mt-6">
+        <p className="text-center text-blue-100 text-sm mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 font-semibold hover:underline">Sign In</Link>
+          <Link to="/login" className="text-white font-semibold hover:text-blue-200 underline underline-offset-2">Sign In</Link>
         </p>
       </div>
     </div>

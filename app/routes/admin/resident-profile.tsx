@@ -56,7 +56,7 @@ export default function ResidentProfilePage() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
     </div>
   );
 
@@ -64,7 +64,7 @@ export default function ResidentProfilePage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 glass-card p-6 rounded-2xl">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
             <ChevronLeft className="w-5 h-5" />

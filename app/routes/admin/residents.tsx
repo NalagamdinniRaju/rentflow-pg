@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Users, Building2, MapPin, IndianRupee, Bed, Phone, FileText, CheckCircle, AlertTriangle, ArrowRight, XCircle, Download, FileSpreadsheet, Pencil, Filter, Calendar, Plus } from 'lucide-react';
+import { Users, Building2, MapPin, IndianRupee, Bed, Phone, FileText, CheckCircle, AlertTriangle, ArrowRight, XCircle, Download, FileSpreadsheet, Pencil, Filter, Calendar, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -20,6 +20,7 @@ export default function ResidentsPage() {
   const { buildingIds, isImpersonating } = useManagementContext();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   // Export States
   const [exportOpen, setExportOpen] = useState(false);
@@ -137,7 +138,7 @@ export default function ResidentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-card p-6 rounded-2xl gap-4">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600" />
@@ -192,9 +193,9 @@ export default function ResidentsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex bg-white border rounded-lg p-1">
+      <div className="glass-card rounded-2xl overflow-hidden">
+        <div className="border-b border-white/30 p-4 bg-white/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex glass rounded-lg p-1 border border-white/50">
             {['ACTIVE', 'PENDING', 'VACATED', 'ALL'].map(tab => (
               <button
                 key={tab}
@@ -205,7 +206,7 @@ export default function ResidentsPage() {
               </button>
             ))}
           </div>
-          <div className="relative flex-1 sm:max-w-[250px]">
+          <div className="relative flex-1 sm:max-w-64">
              <Input 
                placeholder="Search name, phone..." 
                className="pl-9 h-9"
@@ -219,40 +220,41 @@ export default function ResidentsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-100">
-                <th className="px-6 py-4">Resident</th>
-                <th className="px-6 py-4">Age / Sex</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Building / Flat</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+              <tr className="bg-white/20 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-white/20">
+                <th className="px-4 md:px-6 py-4">Resident</th>
+                <th className="px-4 md:px-6 py-4 hidden md:table-cell">Age / Sex</th>
+                <th className="px-4 md:px-6 py-4">Status</th>
+                <th className="px-4 md:px-6 py-4 hidden lg:table-cell">Building / Flat</th>
+                <th className="px-4 md:px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map(r => (
+                <>
                 <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4">
+                  <td className="px-4 md:px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
                         {r.photo ? <img src={r.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 uppercase font-bold text-sm">{r.name.charAt(0)}</div>}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-900 truncate">{r.name}</p>
+                        <p className="font-bold text-slate-900 truncate text-sm">{r.name}</p>
                         <p className="text-[11px] text-slate-500 flex items-center gap-1 font-medium italic"><Phone className="w-3 h-3"/> {r.phone}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 md:px-6 py-4 hidden md:table-cell">
                     <div className="flex flex-col">
                        <span className="text-sm font-bold text-slate-700">{r.age || '-'} Yrs</span>
                        <span className="text-[10px] text-slate-400 uppercase font-black">{r.gender || '-'}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 md:px-6 py-4">
                     <Badge variant={r.status === 'ACTIVE' ? 'success' : r.status === 'PENDING' ? 'secondary' : r.status === 'VACATED' ? 'info' : r.status === 'REJECTED' ? 'danger' : 'default'}>
                        {r.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
                     <div className="flex flex-col gap-0.5">
                        <span className="text-sm font-semibold text-slate-900 flex items-center gap-1">
                           <Building2 className="w-3 h-3 text-slate-400"/> {r.building?.name || 'N/A'}
@@ -264,20 +266,25 @@ export default function ResidentsPage() {
                              {r.room.room_types.name}
                            </span>
                          )}
-                         {r.room?.sharing_types?.name && (
-                           <span className="text-[10px] text-slate-400 font-medium">({r.room.sharing_types.name})</span>
-                         )}
                        </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                       {r.status === 'PENDING' ? (
-                         <div className="flex gap-2">
+                  <td className="px-4 md:px-6 py-4 text-right">
+                    <div className="flex justify-end items-center gap-1">
+                      {/* Mobile expand toggle */}
+                      <button
+                        className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        onClick={() => setExpandedRow(expandedRow === r.id ? null : r.id)}
+                        aria-label="Toggle details"
+                      >
+                        {expandedRow === r.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+                      {r.status === 'PENDING' ? (
+                         <div className="flex gap-1.5">
                            <Link to={`/admin/residents/${r.id}`}>
-                             <Button size="sm" variant="outline" className="h-8 text-blue-600 border-blue-100 hover:bg-blue-50">Review Details</Button>
+                             <Button size="sm" variant="outline" className="h-8 text-xs text-blue-600 border-blue-100 hover:bg-blue-50 hidden sm:flex">Review</Button>
                            </Link>
-                           <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(r.id)}>Quick Approve</Button>
+                           <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(r.id)}>Approve</Button>
                          </div>
                        ) : (
                          <div className="flex gap-1">
@@ -287,13 +294,46 @@ export default function ResidentsPage() {
                              </Button>
                            </Link>
                            <Link to={`/admin/residents/${r.id}`}>
-                             <Button variant="ghost" size="sm" className="h-8 text-blue-600 font-bold hover:bg-blue-50">View</Button>
+                             <Button variant="ghost" size="sm" className="h-8 text-blue-600 font-bold hover:bg-blue-50 text-xs">View</Button>
                            </Link>
                          </div>
                        )}
                     </div>
                   </td>
                 </tr>
+                {/* Mobile expanded detail row */}
+                {expandedRow === r.id && (
+                  <tr key={`${r.id}-expanded`} className="bg-blue-50/60 md:hidden border-b border-blue-100">
+                    <td colSpan={5} className="px-4 py-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        <div>
+                          <span className="text-slate-400 uppercase font-black tracking-widest text-[9px]">Age / Gender</span>
+                          <p className="font-bold text-slate-900 mt-0.5">{r.age || '-'} yrs / {r.gender || '-'}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 uppercase font-black tracking-widest text-[9px]">Building</span>
+                          <p className="font-bold text-slate-900 mt-0.5 truncate">{r.building?.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 uppercase font-black tracking-widest text-[9px]">Flat / Bed</span>
+                          <p className="font-bold text-slate-900 mt-0.5">F:{r.room?.room_number || '-'} / B:{r.seat?.seat_number || '-'}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 uppercase font-black tracking-widest text-[9px]">Flat Type</span>
+                          <p className="font-bold text-slate-900 mt-0.5">{r.room?.room_types?.name || 'Standard'}</p>
+                        </div>
+                        {r.status === 'PENDING' && (
+                          <div className="col-span-2 pt-1">
+                            <Link to={`/admin/residents/${r.id}`}>
+                              <Button size="sm" variant="outline" className="w-full h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50">Review Full Application</Button>
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </>
               ))}
             </tbody>
           </table>

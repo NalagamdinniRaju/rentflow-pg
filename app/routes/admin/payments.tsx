@@ -162,7 +162,7 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass-card p-6 rounded-2xl gap-4">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <IndianRupee className="w-6 h-6 text-emerald-600" />
@@ -171,21 +171,21 @@ export default function PaymentsPage() {
           <p className="text-slate-500 mt-1">Track collections and pending outstandings</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
            <Select value={filterMonth} onValueChange={setFilterMonth}>
-             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+             <SelectTrigger className="w-32 sm:w-36"><SelectValue /></SelectTrigger>
              <SelectContent>
                {MONTH_NAMES.map((m, i) => <SelectItem key={i} value={(i+1).toString()}>{m}</SelectItem>)}
              </SelectContent>
            </Select>
            <Select value={filterYear} onValueChange={setFilterYear}>
-             <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+             <SelectTrigger className="w-20 sm:w-24"><SelectValue /></SelectTrigger>
              <SelectContent>
                {[2024,2025,2026,2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
              </SelectContent>
            </Select>
            <Select value={filterStatus} onValueChange={setFilterStatus}>
-             <SelectTrigger className="w-32"><SelectValue placeholder="All Status" /></SelectTrigger>
+             <SelectTrigger className="w-28 sm:w-32"><SelectValue placeholder="All Status" /></SelectTrigger>
              <SelectContent>
                <SelectItem value="ALL">All Status</SelectItem>
                <SelectItem value="PENDING">Pending</SelectItem>
@@ -197,8 +197,8 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-         <Card className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white border-none shadow-md shadow-emerald-500/20">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+         <Card className="text-white border-none shadow-md shadow-emerald-500/20" style={{ background: 'linear-gradient(to bottom right, #10b981, #047857)' }}>
             <CardContent className="p-6">
                <p className="text-emerald-100 font-medium mb-1 text-sm uppercase tracking-wider">Collected</p>
                <h2 className="text-3xl font-extrabold">{formatCurrency(totalCollected)}</h2>
@@ -207,7 +207,7 @@ export default function PaymentsPage() {
                </div>
             </CardContent>
          </Card>
-         <Card className="bg-white border-slate-100 shadow-md">
+         <Card className="border-slate-100 shadow-md">
             <CardContent className="p-6">
                <p className="text-slate-500 font-medium mb-1 text-sm uppercase tracking-wider">Submitted</p>
                <h2 className="text-3xl font-extrabold text-blue-600">{submittedCount} Residents</h2>
@@ -216,7 +216,7 @@ export default function PaymentsPage() {
                </div>
             </CardContent>
          </Card>
-         <Card className="bg-gradient-to-br from-red-500 to-red-700 text-white border-none shadow-md shadow-red-500/20">
+         <Card className="text-white border-none shadow-md shadow-red-500/20" style={{ background: 'linear-gradient(to bottom right, #ef4444, #b91c1c)' }}>
             <CardContent className="p-6">
                <p className="text-red-100 font-medium mb-1 text-sm uppercase tracking-wider">Outstanding</p>
                <h2 className="text-3xl font-extrabold">{formatCurrency(totalDue)}</h2>
@@ -225,7 +225,7 @@ export default function PaymentsPage() {
                </div>
             </CardContent>
          </Card>
-         <Card className="bg-slate-800 text-white border-none shadow-md">
+         <Card className="text-white border-none shadow-md" style={{ background: '#1e293b' }}>
             <CardContent className="p-6 flex flex-col justify-center h-full">
                <div className="flex flex-col items-center text-center">
                  <span className="text-3xl font-extrabold text-blue-400">{pendingCount}</span>

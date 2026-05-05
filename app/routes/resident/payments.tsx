@@ -106,7 +106,7 @@ export default function ResidentPaymentsPage() {
 
       {/* Stats Summary */}
       <div className="px-4 -mt-4">
-        <div className="bg-white rounded-[24px] border border-slate-100 p-5 shadow-sm grid grid-cols-2 gap-4">
+        <div className="glass-card rounded-[24px] p-5 shadow-sm grid grid-cols-2 gap-4">
            <div className="flex flex-col">
               <span className="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Total Paid</span>
               <span className="text-emerald-600 text-lg font-bold">
@@ -136,7 +136,7 @@ export default function ResidentPaymentsPage() {
             const isRejected = p.status === 'REJECTED';
             
             return (
-              <div key={p.id} className="bg-white rounded-[22px] border border-slate-100 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+              <div key={p.id} className="glass-card rounded-[22px] p-4 flex flex-col gap-3 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isPaid ? 'bg-emerald-50 text-emerald-600' : isSubmitted ? 'bg-blue-50 text-blue-600' : isRejected ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
                     {isPaid ? <CheckCircle2 className="w-6 h-6" /> : isSubmitted ? <Clock className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}

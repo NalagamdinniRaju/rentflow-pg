@@ -27,7 +27,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center glass-card p-6 rounded-2xl">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-indigo-600" />
@@ -44,11 +44,11 @@ export default function ReportsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center p-12 text-slate-500">Loading financial data...</div>
+        <div className="text-center p-12 text-white">Loading financial data...</div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-emerald-50 border-emerald-200">
+            <Card className="border-emerald-200" style={{ background: '#ecfdf5' }}>
               <CardContent className="p-6">
                  <div className="flex items-center gap-3 mb-2 text-emerald-700">
                     <IndianRupee className="w-5 h-5" />
@@ -57,7 +57,7 @@ export default function ReportsPage() {
                  <h2 className="text-3xl font-extrabold text-emerald-900">{formatCurrency(yearlyIncome)}</h2>
               </CardContent>
             </Card>
-            <Card className="bg-red-50 border-red-200">
+            <Card className="border-red-200" style={{ background: '#fef2f2' }}>
               <CardContent className="p-6">
                  <div className="flex items-center gap-3 mb-2 text-red-700">
                     <Receipt className="w-5 h-5" />
@@ -66,7 +66,7 @@ export default function ReportsPage() {
                  <h2 className="text-3xl font-extrabold text-red-900">{formatCurrency(yearlyExpense)}</h2>
               </CardContent>
             </Card>
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="border-blue-200" style={{ background: '#eff6ff' }}>
               <CardContent className="p-6">
                  <div className="flex items-center gap-3 mb-2 text-blue-700">
                     <TrendingUp className="w-5 h-5" />

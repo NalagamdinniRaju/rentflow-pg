@@ -47,10 +47,10 @@ export default function AdminDashboard() {
   if (loading && !!user?.id) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
         <div className="text-center">
-           <p className="text-slate-600 font-bold">Synchronizing Executive Data...</p>
-           <p className="text-slate-400 text-[10px] uppercase tracking-widest animate-pulse mt-1 font-bold">Secure connection established</p>
+           <p className="text-white font-bold">Synchronizing Executive Data...</p>
+           <p className="text-white/60 text-[10px] uppercase tracking-widest animate-pulse mt-1 font-bold">Secure connection established</p>
         </div>
       </div>
     );
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass-card p-6 rounded-2xl gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
           <p className="text-slate-500 mt-1 font-medium italic">Welcome back! Here's your property performance overview.</p>
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
       {/* Top Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((s) => (
-          <Card key={s.label} className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-shadow">
+          <Card key={s.label} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center shrink-0`}>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-100 shadow-sm bg-gradient-to-br from-blue-600 to-indigo-800 text-white">
+        <Card className="border-none shadow-sm text-white" style={{ background: 'linear-gradient(to bottom right, #2563eb, #3730a3)' }}>
           <CardHeader>
             <CardTitle className="text-white">Quick Insights</CardTitle>
             <CardDescription className="text-blue-100">Monthly AI Analysis</CardDescription>
